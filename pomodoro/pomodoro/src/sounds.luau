@@ -32,7 +32,8 @@ local function playAlarmExternal(path: string)
     end
     local safePath = path:gsub('"', '\\"')
     if noctalia and noctalia.runAsync then
-        local loopCmd = string.format([[sh -c '
+        -- Play alarm once, boost volume to 145%, and restore volume automatically when playback ends
+        local playCmd = string.format([[sh -c '
             if [ ! -f /tmp/noctalia_pomodoro_orig_vol ]; then
                 CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \$2}")
                 if [ -n "$CURR_VOL" ]; then
@@ -40,11 +41,10 @@ local function playAlarmExternal(path: string)
                 fi
             fi
             wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
-            while true; do
-                ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || break
-            done
-        ' noctalia_pomodoro_alarm_loop "%s" &]], safePath)
-        noctalia.runAsync(loopCmd)
+            ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || aplay "$1" 2>/dev/null || true
+            /home/kairos/.local/bin/noctalia-audio-stop.sh 2>/dev/null || true
+        ' noctalia_pomodoro_alarm_single "%s" &]], safePath)
+        noctalia.runAsync(playCmd)
     end
 end
 
