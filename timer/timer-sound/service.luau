@@ -127,9 +127,9 @@ local function playAlarmSound()
   if noctalia.runAsync then
     -- Save current volume and elevate default sink to 145% (1.45), play alarm with tight immediate loop
     if repeatAlarm then
-      local loopCmd = `sh -c '
+      local loopCmd = string.format([[sh -c '
         if [ ! -f /tmp/noctalia_timer_orig_vol ]; then
-          CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \\$2}")
+          CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \$2}")
           if [ -n "$CURR_VOL" ]; then
             echo "$CURR_VOL" > /tmp/noctalia_timer_orig_vol
           fi
@@ -138,19 +138,19 @@ local function playAlarmSound()
         while true; do
           ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || break
         done
-      ' noctalia_alarm_loop "{safePath}" &`
+      ' noctalia_alarm_loop "%s" &]], safePath)
       noctalia.runAsync(loopCmd)
     else
-      local singleCmd = `sh -c '
+      local singleCmd = string.format([[sh -c '
         if [ ! -f /tmp/noctalia_timer_orig_vol ]; then
-          CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \\$2}")
+          CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \$2}")
           if [ -n "$CURR_VOL" ]; then
             echo "$CURR_VOL" > /tmp/noctalia_timer_orig_vol
           fi
         fi
         wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
         ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null
-      ' noctalia_alarm_single "{safePath}" &`
+      ' noctalia_alarm_single "%s" &]], safePath)
       noctalia.runAsync(singleCmd)
     end
   elseif noctalia.sound and noctalia.sound.play then

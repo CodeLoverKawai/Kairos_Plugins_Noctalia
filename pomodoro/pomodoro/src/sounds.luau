@@ -32,9 +32,9 @@ local function playAlarmExternal(path: string)
     end
     local safePath = path:gsub('"', '\\"')
     if noctalia and noctalia.runAsync then
-        local loopCmd = `sh -c '
+        local loopCmd = string.format([[sh -c '
             if [ ! -f /tmp/noctalia_pomodoro_orig_vol ]; then
-                CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \\$2}")
+                CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \$2}")
                 if [ -n "$CURR_VOL" ]; then
                     echo "$CURR_VOL" > /tmp/noctalia_pomodoro_orig_vol
                 fi
@@ -43,7 +43,7 @@ local function playAlarmExternal(path: string)
             while true; do
                 ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || break
             done
-        ' noctalia_pomodoro_alarm_loop "{safePath}" &`
+        ' noctalia_pomodoro_alarm_loop "%s" &]], safePath)
         noctalia.runAsync(loopCmd)
     end
 end
