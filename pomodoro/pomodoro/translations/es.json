@@ -31,6 +31,14 @@
       "description": "Inicia el temporizador de trabajo automáticamente tras un descanso",
       "label": "Iniciar trabajo automáticamente"
     },
+    "break-complete-sound-path": {
+      "description": "Ruta del archivo de audio al finalizar el descanso (Break -> Work)",
+      "label": "Sonido fin de descanso"
+    },
+    "work-complete-sound-path": {
+      "description": "Ruta del archivo de audio al finalizar el trabajo (Work -> Break)",
+      "label": "Sonido fin de trabajo"
+    },
     "bypass-noctalia-sound-globals": {
       "description": "Ignora la configuración de sonido global de Noctalia Shell para reproducir la alarma directamente a través de PipeWire (pw-play).",
       "label": "Omitir configuración global de sonido"

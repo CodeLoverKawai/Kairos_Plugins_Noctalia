@@ -63,6 +63,20 @@ description_key = "settings.enable-work-timer-sound.description"
 default         = false
 
 [[setting]]
+key             = "work-complete-sound-path"
+type            = "file"
+label_key       = "settings.work-complete-sound-path.label"
+description_key = "settings.work-complete-sound-path.description"
+default         = ""
+
+[[setting]]
+key             = "break-complete-sound-path"
+type            = "file"
+label_key       = "settings.break-complete-sound-path.label"
+description_key = "settings.break-complete-sound-path.description"
+default         = ""
+
+[[setting]]
 key             = "use-bundled-alarm-sound"
 type            = "bool"
 label_key       = "settings.use-bundled-alarm-sound.label"
@@ -108,7 +122,7 @@ entry           = "src/panel.luau"
 placement       = "attached"
 open_near_click = true
 width           = 350
-height          = 295
+height          = 340
 
 [[service]]
 id    = "pomodoro"

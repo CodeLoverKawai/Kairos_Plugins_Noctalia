@@ -189,17 +189,22 @@ function M.playTock()
     playSound(tockSounds[math.random(#tockSounds)])
 end
 
+function M.playWorkAlarm(customPath: string?)
+    local targetPath = if customPath and customPath ~= "" then customPath else if alarmSound then alarmSound.path else ""
+    if targetPath ~= "" then
+        playAlarmExternal(targetPath)
+    end
+end
+
+function M.playBreakAlarm(customPath: string?)
+    local targetPath = if customPath and customPath ~= "" then customPath else if alarmSound then alarmSound.path else ""
+    if targetPath ~= "" then
+        playAlarmExternal(targetPath)
+    end
+end
+
 function M.playAlarm()
-    if not alarmSound then
-        return
-    end
-    if noctalia and noctalia.runAsync then
-        playAlarmExternal(alarmSound.path)
-    elseif alarmSound.loaded and noctalia and noctalia.sound and noctalia.sound.play then
-        noctalia.sound.play(alarmSound.name)
-    else
-        playAlarmExternal(alarmSound.path)
-    end
+    M.playWorkAlarm(nil)
 end
 
 function M.stop()

@@ -13,6 +13,8 @@ type Config = {
     enableWorkTimerSound: boolean,
     useBundledAlarmSound: boolean,
     bypassNoctaliaSoundGlobals: boolean,
+    workCompleteSoundPath: string,
+    breakCompleteSoundPath: string,
 }
 
 local function getBoolConfig(key: string, default: boolean): boolean
@@ -32,6 +34,14 @@ local function getNumConfig(key: string, default: number): number
     return if num and num > 0 then num else default
 end
 
+local function getStringConfig(key: string, default: string): string
+    local val = noctalia.getConfig(key)
+    if val == nil or type(val) ~= "string" then
+        return default
+    end
+    return val
+end
+
 local function loadConfig(): Config
     return {
         workDuration = getNumConfig("work-duration", 25),
@@ -43,6 +53,8 @@ local function loadConfig(): Config
         enableWorkTimerSound = getBoolConfig("enable-work-timer-sound", false),
         useBundledAlarmSound = getBoolConfig("use-bundled-alarm-sound", true),
         bypassNoctaliaSoundGlobals = getBoolConfig("bypass-noctalia-sound-globals", true),
+        workCompleteSoundPath = getStringConfig("work-complete-sound-path", ""),
+        breakCompleteSoundPath = getStringConfig("break-complete-sound-path", ""),
     }
 end
 
@@ -133,9 +145,9 @@ secondsLeft = getStageTotalSeconds()
 
 local function handleStageFinished()
     if sessionPtr.stage == 1 then
-        -- Work finished
+        -- Work finished -> transition to break
         if config.useBundledAlarmSound then
-            sounds.playAlarm()
+            sounds.playWorkAlarm(config.workCompleteSoundPath)
         end
         noctalia.notify("Pomodoro", noctalia.tr("notification.work-complete"))
 
@@ -146,10 +158,10 @@ local function handleStageFinished()
             isRunning = false
         end
     else
-        -- Break finished
+        -- Break finished -> transition to work or complete
         if sessionPtr.session < totalSessions then
             if config.useBundledAlarmSound then
-                sounds.playAlarm()
+                sounds.playBreakAlarm(config.breakCompleteSoundPath)
             end
             noctalia.notify("Pomodoro", noctalia.tr("notification.short-break-complete"))
 
@@ -163,7 +175,7 @@ local function handleStageFinished()
         else
             -- Final session long break finished: complete cycle!
             if config.useBundledAlarmSound then
-                sounds.playAlarm()
+                sounds.playBreakAlarm(config.breakCompleteSoundPath)
             end
             noctalia.notify("Pomodoro", noctalia.tr("notification.all-complete"))
 
@@ -248,6 +260,29 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
         local maxSecs = getStageTotalSeconds()
         if secondsLeft > maxSecs then secondsLeft = maxSecs elseif not isRunning and not isDirty then secondsLeft = maxSecs end
         if isCompleted and sessionPtr.session < totalSessions then isCompleted = false end
+    elseif command:sub(1, 10) == "setPreset:" then
+        local preset = command:sub(11)
+        if preset == "clasico" then
+            config.workDuration = 25
+            config.shortBreakDuration = 5
+            config.longBreakDuration = 15
+        elseif preset == "deep" then
+            config.workDuration = 50
+            config.shortBreakDuration = 10
+            config.longBreakDuration = 30
+        elseif preset == "ultra" then
+            config.workDuration = 90
+            config.shortBreakDuration = 20
+            config.longBreakDuration = 45
+        end
+
+        sessionData = buildSessionData(totalSessions)
+        noctalia.state.set("pomodoro.sessionData", sessionData)
+        noctalia.state.set("pomodoro.config", config)
+
+        if not isRunning and not isDirty then
+            secondsLeft = getStageTotalSeconds()
+        end
     else
         local nStr = command:match("^setSessions[:%s]*(%d+)$")
         if nStr then

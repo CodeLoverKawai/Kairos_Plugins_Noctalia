@@ -98,6 +98,18 @@ function onIncrementSessions()
     noctalia.state.set("pomodoro.nextCommand", "setSessions:" .. target)
 end
 
+function onPresetClasico()
+    noctalia.state.set("pomodoro.nextCommand", "setPreset:clasico")
+end
+
+function onPresetDeep()
+    noctalia.state.set("pomodoro.nextCommand", "setPreset:deep")
+end
+
+function onPresetUltra()
+    noctalia.state.set("pomodoro.nextCommand", "setPreset:ultra")
+end
+
 local function render()
     local state = noctalia.state.get("pomodoro.state")
     local sessionData = noctalia.state.get("pomodoro.sessionData")
@@ -272,6 +284,31 @@ local function render()
                     onClick = "onIncrementSessions",
                     enabled = totalSessions < 12,
                     width = 30,
+                    height = 24,
+                }),
+            }),
+
+            -- 2b. Named Presets Row
+            ui.row({ align = "center", justify = "center", gap = 8 }, {
+                ui.button({
+                    text = "Clásico (25m)",
+                    variant = if stageTotalSeconds == 25 * 60 and not isRunning then "primary" else "ghost",
+                    controlSize = "sm",
+                    onClick = "onPresetClasico",
+                    height = 24,
+                }),
+                ui.button({
+                    text = "Deep (50m)",
+                    variant = if stageTotalSeconds == 50 * 60 and not isRunning then "primary" else "ghost",
+                    controlSize = "sm",
+                    onClick = "onPresetDeep",
+                    height = 24,
+                }),
+                ui.button({
+                    text = "Ultra (90m)",
+                    variant = if stageTotalSeconds == 90 * 60 and not isRunning then "primary" else "ghost",
+                    controlSize = "sm",
+                    onClick = "onPresetUltra",
                     height = 24,
                 }),
             }),
