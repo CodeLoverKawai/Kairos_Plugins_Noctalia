@@ -204,19 +204,7 @@ end
 
 function M.stop()
     if noctalia and noctalia.runAsync then
-        local stopCmd = [[sh -c '
-            if [ -f /tmp/noctalia_pomodoro_orig_vol ]; then
-                ORIG_VOL=$(cat /tmp/noctalia_pomodoro_orig_vol 2>/dev/null)
-                if [ -n "$ORIG_VOL" ]; then
-                    wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
-                fi
-                rm -f /tmp/noctalia_pomodoro_orig_vol
-            fi
-            pkill -9 -f "noctalia_pomodoro_alarm_loo[p]" 2>/dev/null || true
-            pkill -9 -f "noctalia_pomodoro_sound" 2>/dev/null || true
-            pkill -9 -x "pw-play|paplay|pw-cat|pacat|mpv|aplay|ffplay" 2>/dev/null || true
-        ' noctalia_pomodoro_killer &]]
-        noctalia.runAsync(stopCmd)
+        noctalia.runAsync("/home/kairos/.local/bin/noctalia-audio-stop.sh")
     end
     if noctalia and noctalia.sound and noctalia.sound.stop and alarmSound then
         pcall(function()
