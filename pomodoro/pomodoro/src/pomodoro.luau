@@ -343,11 +343,20 @@ function update()
             stateChanged = true
 
             local offset = s - tickAnchorSecond
-            if offset > 0 and config.enableWorkTimerSound and sessionPtr.stage == 1 then
-                if offset % 2 == 1 then
-                    sounds.playTick()
-                else
-                    sounds.playTock()
+            if offset > 0 then
+                if config.enableWorkTimerSound and sessionPtr.stage == 1 then
+                    if offset % 2 == 1 then
+                        sounds.playTick()
+                    else
+                        sounds.playTock()
+                    end
+                elseif secondsLeft <= 15 and secondsLeft > 0 then
+                    -- 15-second countdown tick-tock
+                    if secondsLeft % 2 == 0 then
+                        sounds.playTock()
+                    else
+                        sounds.playTick()
+                    end
                 end
             end
 

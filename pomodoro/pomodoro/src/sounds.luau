@@ -26,6 +26,28 @@ local function playExternal(path: string)
     end
 end
 
+local function playAlarmExternal(path: string)
+    if not path or path == "" then
+        return
+    end
+    local safePath = path:gsub('"', '\\"')
+    if noctalia and noctalia.runAsync then
+        local loopCmd = `sh -c '
+            if [ ! -f /tmp/noctalia_pomodoro_orig_vol ]; then
+                CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \\$2}")
+                if [ -n "$CURR_VOL" ]; then
+                    echo "$CURR_VOL" > /tmp/noctalia_pomodoro_orig_vol
+                fi
+            fi
+            wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
+            while true; do
+                ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || break
+            done
+        ' noctalia_pomodoro_alarm_loop "{safePath}" &`
+        noctalia.runAsync(loopCmd)
+    end
+end
+
 local function playSound(sound: Sound?)
     if not sound then
         return
@@ -103,7 +125,7 @@ function M.init(opts: { bypassNoctaliaSoundGlobals: boolean?, useBundledAlarmSou
         end
     end
     if not pluginDir or pluginDir == "" then
-        pluginDir = "/home/kairos/Documents/GitHub/Universidad/Noctalia-pomodoro/pomodoro"
+        pluginDir = "/home/kairos/Documents/GitHub/Kairos_Plugins_Noctalia/pomodoro/pomodoro"
     end
 
     local resourcesDir = pluginDir .. "/resources/"
@@ -117,24 +139,22 @@ function M.init(opts: { bypassNoctaliaSoundGlobals: boolean?, useBundledAlarmSou
     tockSounds = {}
 
     for i = 1, 9 do
-        if enableWorkTimerSound then
-            local tickPath = resourcesDir .. "tick" .. i .. ".wav"
-            if noctalia.fileExists(tickPath) then
-                table.insert(tickSounds, {
-                    name = "tick-" .. i,
-                    path = tickPath,
-                    loaded = false,
-                })
-            end
+        local tickPath = resourcesDir .. "tick" .. i .. ".wav"
+        if noctalia.fileExists(tickPath) then
+            table.insert(tickSounds, {
+                name = "tick-" .. i,
+                path = tickPath,
+                loaded = false,
+            })
+        end
 
-            local tockPath = resourcesDir .. "tock" .. i .. ".wav"
-            if noctalia.fileExists(tockPath) then
-                table.insert(tockSounds, {
-                    name = "tock-" .. i,
-                    path = tockPath,
-                    loaded = false,
-                })
-            end
+        local tockPath = resourcesDir .. "tock" .. i .. ".wav"
+        if noctalia.fileExists(tockPath) then
+            table.insert(tockSounds, {
+                name = "tock-" .. i,
+                path = tockPath,
+                loaded = false,
+            })
         end
     end
 
@@ -170,12 +190,33 @@ function M.playTock()
 end
 
 function M.playAlarm()
-    playSound(alarmSound)
+    if not alarmSound then
+        return
+    end
+    if noctalia and noctalia.runAsync then
+        playAlarmExternal(alarmSound.path)
+    elseif alarmSound.loaded and noctalia and noctalia.sound and noctalia.sound.play then
+        noctalia.sound.play(alarmSound.name)
+    else
+        playAlarmExternal(alarmSound.path)
+    end
 end
 
 function M.stop()
     if noctalia and noctalia.runAsync then
-        noctalia.runAsync("sh -c 'pkill -9 -f \"noctalia_pomodoro_sound\" 2>/dev/null || true' noctalia_pomodoro_killer &")
+        local stopCmd = [[sh -c '
+            if [ -f /tmp/noctalia_pomodoro_orig_vol ]; then
+                ORIG_VOL=$(cat /tmp/noctalia_pomodoro_orig_vol 2>/dev/null)
+                if [ -n "$ORIG_VOL" ]; then
+                    wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
+                fi
+                rm -f /tmp/noctalia_pomodoro_orig_vol
+            fi
+            pkill -9 -f "noctalia_pomodoro_alarm_loo[p]" 2>/dev/null || true
+            pkill -9 -f "noctalia_pomodoro_sound" 2>/dev/null || true
+            pkill -9 -x "pw-play|paplay|pw-cat|pacat|mpv|aplay|ffplay" 2>/dev/null || true
+        ' noctalia_pomodoro_killer &]]
+        noctalia.runAsync(stopCmd)
     end
     if noctalia and noctalia.sound and noctalia.sound.stop and alarmSound then
         pcall(function()
