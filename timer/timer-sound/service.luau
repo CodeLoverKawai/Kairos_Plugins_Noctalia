@@ -21,13 +21,51 @@ local function formatTime(seconds)
   return `{m}:{string.format("%02d", s)}`
 end
 
+local STATE_FILE = "/home/kairos/.local/state/noctalia/plugins/data/codeloverkawai/timer_state.json"
+
+local function saveTimerState(state, remaining, duration)
+  if not (noctalia and noctalia.writeFile) then
+    return
+  end
+  local payload = string.format('{"state":"%s","remaining":%d,"duration":%d}', state, remaining or 0, duration or 0)
+  pcall(function()
+    noctalia.writeFile(STATE_FILE, payload)
+  end)
+end
+
+local function loadTimerState()
+  if not (noctalia and noctalia.readFile) then
+    return nil
+  end
+  local ok, content = pcall(function()
+    return noctalia.readFile(STATE_FILE)
+  end)
+  if not ok or not content or content == "" then
+    return nil
+  end
+  local state = content:match('"state"%s*:%s*"([^"]+)"')
+  local remaining = tonumber(content:match('"remaining"%s*:%s*(%d+)'))
+  local duration = tonumber(content:match('"duration"%s*:%s*(%d+)'))
+  if remaining and remaining > 0 then
+    return {
+      state = if state == "RUNNING" then "PAUSED" else (state or "PAUSED"),
+      remaining = remaining,
+      duration = duration or remaining,
+    }
+  end
+  return nil
+end
+
+local initialSaved = loadTimerState()
+local initRemaining = if initialSaved then initialSaved.remaining else 0
+local initDuration = if initialSaved then initialSaved.duration else 0
+local initState = if initialSaved then initialSaved.state else "IDLE"
+
 ---- Initialize state
-noctalia.state.set("timer.state", "IDLE") -- IDLE, NOTIFY, RUNNING, PAUSED
-noctalia.state.set("timer.remaining", 0)
-noctalia.state.set("timer.formattedTime", "0")
--- The countdown total captured when the timer starts, so UI entries can render
--- a progress bar (remaining / duration). Reset to 0 when the timer is cleared.
-noctalia.state.set("timer.duration", 0)
+noctalia.state.set("timer.state", initState) -- IDLE, NOTIFY, RUNNING, PAUSED
+noctalia.state.set("timer.remaining", initRemaining)
+noctalia.state.set("timer.formattedTime", formatTime(initRemaining))
+noctalia.state.set("timer.duration", initDuration)
 
 noctalia.state.watch("timer.remaining", function (value)
   noctalia.state.set("timer.formattedTime", formatTime(value))
@@ -159,6 +197,7 @@ noctalia.state.watch("timer.cmd", function(cmd)
     PAUSE = function()
       stopSound()
       noctalia.state.set("timer.state", "PAUSED")
+      saveTimerState("PAUSED", noctalia.state.get("timer.remaining"), noctalia.state.get("timer.duration"))
     end,
     START = function ()
       stopSound()
@@ -172,6 +211,7 @@ noctalia.state.watch("timer.cmd", function(cmd)
           noctalia.state.set("timer.duration", remaining)
         end
         noctalia.state.set("timer.state", "RUNNING")
+        saveTimerState("RUNNING", remaining, noctalia.state.get("timer.duration"))
       end
     end,
     STOP = function ()
@@ -179,12 +219,14 @@ noctalia.state.watch("timer.cmd", function(cmd)
       noctalia.state.set("timer.remaining", 0)
       noctalia.state.set("timer.duration", 0)
       noctalia.state.set("timer.state", "IDLE")
+      saveTimerState("IDLE", 0, 0)
     end,
     RESET = function ()
       stopSound()
       noctalia.state.set("timer.remaining", 0)
       noctalia.state.set("timer.duration", 0)
       noctalia.state.set("timer.state", "IDLE")
+      saveTimerState("IDLE", 0, 0)
     end
   }
 
@@ -220,6 +262,10 @@ function update()
     if remaining > 0 then
       local nextRemaining = remaining - 1
       noctalia.state.set("timer.remaining", nextRemaining)
+      -- Save state periodically or when low
+      if nextRemaining % 5 == 0 or nextRemaining <= 15 then
+        saveTimerState("RUNNING", nextRemaining, noctalia.state.get("timer.duration"))
+      end
       -- Play tick-tock countdown in the last 15 seconds
       if nextRemaining > 0 and nextRemaining <= 15 then
         local isTock = (nextRemaining % 2 == 0)
@@ -227,6 +273,7 @@ function update()
       end
     else
       noctalia.state.set("timer.state", "NOTIFY")
+      saveTimerState("NOTIFY", 0, noctalia.state.get("timer.duration"))
       notifyUser()
     end
   end

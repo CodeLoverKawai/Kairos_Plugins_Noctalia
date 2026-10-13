@@ -140,8 +140,68 @@ local function getStateSnapshot()
     }
 end
 
--- Initialize secondsLeft for session 1 stage 1
-secondsLeft = getStageTotalSeconds()
+local STATE_FILE = "/home/kairos/.local/state/noctalia/plugins/data/codeloverkawai/pomodoro_state.json"
+
+local function savePomodoroState()
+    if not (noctalia and noctalia.writeFile) then
+        return
+    end
+    local payload = string.format('{"session":%d,"stage":%d,"secondsLeft":%d,"totalSessions":%d,"isDirty":%s,"isCompleted":%s}',
+        sessionPtr.session,
+        sessionPtr.stage,
+        secondsLeft,
+        totalSessions,
+        if isDirty then "true" else "false",
+        if isCompleted then "true" else "false"
+    )
+    pcall(function()
+        noctalia.writeFile(STATE_FILE, payload)
+    end)
+end
+
+local function loadPomodoroState()
+    if not (noctalia and noctalia.readFile) then
+        return nil
+    end
+    local ok, content = pcall(function()
+        return noctalia.readFile(STATE_FILE)
+    end)
+    if not ok or not content or content == "" then
+        return nil
+    end
+    local session = tonumber(content:match('"session"%s*:%s*(%d+)'))
+    local stage = tonumber(content:match('"stage"%s*:%s*(%d+)'))
+    local sLeft = tonumber(content:match('"secondsLeft"%s*:%s*(%d+)'))
+    local tSessions = tonumber(content:match('"totalSessions"%s*:%s*(%d+)'))
+    local dirty = content:match('"isDirty"%s*:%s*(true)') ~= nil
+    local completed = content:match('"isCompleted"%s*:%s*(true)') ~= nil
+
+    if session and stage and sLeft then
+        return {
+            session = session,
+            stage = stage,
+            secondsLeft = sLeft,
+            totalSessions = tSessions or 4,
+            isDirty = dirty,
+            isCompleted = completed,
+        }
+    end
+    return nil
+end
+
+local savedPomodoro = loadPomodoroState()
+if savedPomodoro then
+    totalSessions = math.max(1, math.min(12, savedPomodoro.totalSessions))
+    sessionData = buildSessionData(totalSessions)
+    noctalia.state.set("pomodoro.sessionData", sessionData)
+    sessionPtr = { session = savedPomodoro.session, stage = savedPomodoro.stage }
+    secondsLeft = savedPomodoro.secondsLeft
+    isDirty = savedPomodoro.isDirty
+    isCompleted = savedPomodoro.isCompleted
+    isRunning = false -- Always restore in PAUSED state
+else
+    secondsLeft = getStageTotalSeconds()
+end
 
 local function handleStageFinished()
     if sessionPtr.stage == 1 then
@@ -310,6 +370,7 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
         end
     end
 
+    savePomodoroState()
     noctalia.state.set("pomodoro.state", getStateSnapshot())
 end)
 
@@ -405,6 +466,9 @@ function update()
     lastProcessedSecond = second
 
     if stateChanged then
+        if secondsLeft % 5 == 0 or secondsLeft <= 15 then
+            savePomodoroState()
+        end
         noctalia.state.set("pomodoro.state", getStateSnapshot())
     end
 end
