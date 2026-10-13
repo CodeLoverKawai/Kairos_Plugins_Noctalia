@@ -1,0 +1,84 @@
+# Reference multi-entry plugin: a countdown timer whose bar widget, panel, and
+# desktop widget are all thin UI clients of one headless service, sharing a
+# single timer through noctalia.state. Demonstrates:
+#
+# service -> headless countdown logic + state, with command handling (START/PAUSE/RESET)
+# bar     -> declarative UI with per-placement settings; opens the panel
+# panel   -> interactive controls (typed duration input) driving the service
+# desktop -> keyboard-free +/- duration adjusters + a progress bar, pinned to the desktop
+#
+# All three UI entries watch noctalia.state, so they reflect and control the
+# same countdown live.
+
+id = "codeloverkawai/timer-sound"
+name = "Timer with Sound & Presets"
+version = "1.3.0"
+plugin_api = 3
+author = "CodeLoverKawai"
+license = "MIT"
+dependencies = []
+tags = ["countdown", "utility", "sound", "productivity"]
+icon = "clock"
+description = "A countdown timer with bar widget, panel, desktop widget, presets and sound alarms."
+
+[[setting]]
+key = "sound_enabled"
+type = "bool"
+label_key = "settings.sound_enabled.label"
+description_key = "settings.sound_enabled.description"
+default = true
+
+[[setting]]
+key = "custom_sound_path"
+type = "file"
+label_key = "settings.custom_sound_path.label"
+description_key = "settings.custom_sound_path.description"
+default = ""
+
+[[setting]]
+key = "repeat_alarm"
+type = "bool"
+label_key = "settings.repeat_alarm.label"
+description_key = "settings.repeat_alarm.description"
+default = true
+
+[[widget]]
+id = "bar"
+entry = "bar.luau"
+
+  [[widget.setting]]
+  key = "show_idle_on_horizontal"
+  type = "bool"
+  label_key = "settings.show_idle.label"
+  description_key = "settings.show_idle.description"
+  default = true
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 340
+height = 330
+placement = "attached"
+position = "auto"
+open_near_click = true
+
+[[service]]
+id = "timer"
+entry = "service.luau"
+
+[[desktop_widget]]
+id = "desktop"
+entry = "desktop.luau"
+
+  [[desktop_widget.setting]]
+  key = "color"
+  type = "color"
+  label_key = "settings.color.label"
+  description_key = "settings.color.description"
+  default = "primary"
+
+  [[desktop_widget.setting]]
+  key = "show_progress"
+  type = "bool"
+  label_key = "settings.show_progress.label"
+  default = true

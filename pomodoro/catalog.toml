@@ -1,0 +1,12 @@
+[[plugin]]
+id = "codeloverkawai/pomodoro"
+name = "Pomodoro Pro"
+version = "1.0.0"
+updated_at = 1789513582
+added_at = 1789513582
+author = "CodeLoverKawai"
+license = "MIT"
+icon = "brain"
+description = "Pomodoro timer with continuous flow, dynamic session target, and total remaining time breakdown."
+plugin_api = 22
+tags = ["bar", "panel", "service", "productivity", "time"]

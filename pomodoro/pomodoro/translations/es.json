@@ -1,0 +1,81 @@
+{
+  "button": {
+    "pause": "Pausar",
+    "reset": "Reiniciar",
+    "reset-all": "Reiniciar todo",
+    "resume": "Reanudar",
+    "skip": "Saltar",
+    "start": "Iniciar"
+  },
+  "completed": "Completado",
+  "current-phase": "Fase actual",
+  "current-stage": "Etapa actual",
+  "long-break": "Descanso largo",
+  "notification": {
+    "all-complete": "¡Todas las sesiones completadas! Excelente trabajo.",
+    "cycle-complete": "¡Ciclo completado! Todas las sesiones objetivo han terminado.",
+    "long-break-complete": "¡Descanso largo terminado! ¿Listo para un nuevo ciclo?",
+    "short-break-complete": "¡Descanso terminado! ¿Listo para concentrarte?",
+    "work-complete": "¡Sesión de trabajo completada! Tiempo de descansar."
+  },
+  "remaining": "Restante",
+  "total": "Total",
+  "session": "Sesión",
+  "sessions": "Sesiones",
+  "settings": {
+    "auto-start-breaks": {
+      "description": "Inicia el temporizador de descanso automáticamente tras una sesión de trabajo",
+      "label": "Iniciar descansos automáticamente"
+    },
+    "auto-start-work": {
+      "description": "Inicia el temporizador de trabajo automáticamente tras un descanso",
+      "label": "Iniciar trabajo automáticamente"
+    },
+    "bypass-noctalia-sound-globals": {
+      "description": "Ignora la configuración de sonido global de Noctalia Shell para reproducir la alarma directamente a través de PipeWire (pw-play).",
+      "label": "Omitir configuración global de sonido"
+    },
+    "default-sessions": {
+      "description": "Número predeterminado de sesiones de trabajo en un ciclo Pomodoro",
+      "label": "Sesiones objetivo predeterminadas"
+    },
+    "enable-work-timer-sound": {
+      "description": "Reproduce sonido de tic-tac cada segundo durante la sesión de trabajo. Los descansos permanecen en silencio.",
+      "label": "Activar sonido del temporizador"
+    },
+    "long-break-duration": {
+      "description": "Duración del descanso largo en minutos",
+      "label": "Duración de descanso largo"
+    },
+    "short-break-duration": {
+      "description": "Duración de los descansos cortos en minutos",
+      "label": "Duración de descanso corto"
+    },
+    "use-bundled-alarm-sound": {
+      "description": "Usa el sonido de alarma integrado cuando finaliza el trabajo o el descanso.",
+      "label": "Usar alarma integrada"
+    },
+    "widget": {
+      "glyph-break": {
+        "description": "Nombre del icono durante el descanso.",
+        "label": "Icono de descanso"
+      },
+      "glyph-main": {
+        "description": "Nombre del icono en reposo.",
+        "label": "Icono principal"
+      },
+      "glyph-work": {
+        "description": "Nombre del icono durante el trabajo.",
+        "label": "Icono de trabajo"
+      }
+    },
+    "work-duration": {
+      "description": "Duración de cada sesión de trabajo en minutos",
+      "label": "Duración de trabajo"
+    }
+  },
+  "short-break": "Descanso corto",
+  "target-sessions": "Objetivo de sesiones",
+  "total-remaining": "Total restante",
+  "work": "Trabajo"
+}
