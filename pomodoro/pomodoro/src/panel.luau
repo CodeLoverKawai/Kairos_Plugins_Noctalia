@@ -270,7 +270,7 @@ local function render()
                     controlSize = "sm",
                     onClick = "onDecrementSessions",
                     enabled = totalSessions > 1,
-                    width = 30,
+                    width = 38,
                     height = 24,
                 }),
                 ui.label({
@@ -285,7 +285,7 @@ local function render()
                     controlSize = "sm",
                     onClick = "onIncrementSessions",
                     enabled = totalSessions < 12,
-                    width = 30,
+                    width = 38,
                     height = 24,
                 }),
             }),
