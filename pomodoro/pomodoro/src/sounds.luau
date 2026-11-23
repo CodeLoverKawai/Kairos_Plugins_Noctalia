@@ -231,12 +231,13 @@ function M.stop()
         noctalia.runAsync([[sh -c '
             if [ -f /tmp/noctalia_pomodoro_alarm.pid ]; then
                 PID=$(cat /tmp/noctalia_pomodoro_alarm.pid)
-                pkill -P "$PID" 2>/dev/null || true
-                kill "$PID" 2>/dev/null || true
                 rm -f /tmp/noctalia_pomodoro_alarm.pid
+                kill -9 "$PID" 2>/dev/null || true
+                pkill -9 -P "$PID" 2>/dev/null || true
             fi
-            pkill -f "[n]octalia_pomodoro_alarm_" 2>/dev/null || true
-            pkill -f "[f]fplay -nodisp" 2>/dev/null || true
+            pkill -9 -f "[n]octalia_pomodoro_alarm_" 2>/dev/null || true
+            pkill -9 -f "[f]fplay -nodisp" 2>/dev/null || true
+            pkill -9 -f "[p]w-play" 2>/dev/null || true
             if [ -f /tmp/noctalia_pomodoro_orig_vol ]; then
                 ORIG_VOL=$(cat /tmp/noctalia_pomodoro_orig_vol)
                 wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true

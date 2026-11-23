@@ -77,12 +77,13 @@ local function stopSound()
     noctalia.runAsync([[sh -c '
       if [ -f /tmp/noctalia_timer_alarm.pid ]; then
         PID=$(cat /tmp/noctalia_timer_alarm.pid)
-        pkill -P "$PID" 2>/dev/null || true
-        kill "$PID" 2>/dev/null || true
         rm -f /tmp/noctalia_timer_alarm.pid
+        kill -9 "$PID" 2>/dev/null || true
+        pkill -9 -P "$PID" 2>/dev/null || true
       fi
-      pkill -f "[n]octalia_alarm_" 2>/dev/null || true
-      pkill -f "[f]fplay -nodisp" 2>/dev/null || true
+      pkill -9 -f "[n]octalia_alarm_" 2>/dev/null || true
+      pkill -9 -f "[f]fplay -nodisp" 2>/dev/null || true
+      pkill -9 -f "[p]w-play" 2>/dev/null || true
       if [ -f /tmp/noctalia_timer_orig_vol ]; then
         ORIG_VOL=$(cat /tmp/noctalia_timer_orig_vol)
         wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
@@ -188,21 +189,33 @@ local function playAlarmSound()
         wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
     ]] else ""
 
+    local playOne = [[
+      if command -v ffplay >/dev/null 2>&1; then
+        ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
+      elif command -v pw-play >/dev/null 2>&1; then
+        pw-play "$1" 2>/dev/null
+      elif command -v paplay >/dev/null 2>&1; then
+        paplay "$1" 2>/dev/null
+      else
+        false
+      fi
+    ]]
+
     if repeatAlarm then
       local loopCmd = string.format([[sh -c '
         echo $$ > /tmp/noctalia_timer_alarm.pid
         %s
         while true; do
-          ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || break
+          %s || break
         done
-      ' noctalia_alarm_loop "%s" &]], volHeader, safePath)
+      ' noctalia_alarm_loop "%s" &]], volHeader, playOne, safePath)
       noctalia.runAsync(loopCmd)
     else
       local singleCmd = string.format([[sh -c '
         echo $$ > /tmp/noctalia_timer_alarm.pid
         %s
-        ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || true
-      ' noctalia_alarm_single "%s" &]], volHeader, safePath)
+        %s || true
+      ' noctalia_alarm_single "%s" &]], volHeader, playOne, safePath)
       noctalia.runAsync(singleCmd)
     end
   elseif noctalia.sound and noctalia.sound.play then
