@@ -150,13 +150,17 @@ local function savePomodoroState()
     if not (noctalia and noctalia.writeFile) then
         return
     end
-    local payload = string.format('{"session":%d,"stage":%d,"secondsLeft":%d,"totalSessions":%d,"isDirty":%s,"isCompleted":%s}',
+    local payload = string.format(
+        '{"session":%d,"stage":%d,"secondsLeft":%d,"totalSessions":%d,"isDirty":%s,"isCompleted":%s,"workDuration":%d,"shortBreakDuration":%d,"longBreakDuration":%d}',
         sessionPtr.session,
         sessionPtr.stage,
         secondsLeft,
         totalSessions,
         if isDirty then "true" else "false",
-        if isCompleted then "true" else "false"
+        if isCompleted then "true" else "false",
+        config.workDuration,
+        config.shortBreakDuration,
+        config.longBreakDuration
     )
     pcall(function()
         noctalia.writeFile(STATE_FILE, payload)
@@ -179,6 +183,9 @@ local function loadPomodoroState()
     local tSessions = tonumber(content:match('"totalSessions"%s*:%s*(%d+)'))
     local dirty = content:match('"isDirty"%s*:%s*(true)') ~= nil
     local completed = content:match('"isCompleted"%s*:%s*(true)') ~= nil
+    local wDur = tonumber(content:match('"workDuration"%s*:%s*(%d+)'))
+    local sbDur = tonumber(content:match('"shortBreakDuration"%s*:%s*(%d+)'))
+    local lbDur = tonumber(content:match('"longBreakDuration"%s*:%s*(%d+)'))
 
     if session and stage and sLeft then
         return {
@@ -188,6 +195,9 @@ local function loadPomodoroState()
             totalSessions = tSessions or 4,
             isDirty = dirty,
             isCompleted = completed,
+            workDuration = wDur,
+            shortBreakDuration = sbDur,
+            longBreakDuration = lbDur,
         }
     end
     return nil
@@ -195,6 +205,17 @@ end
 
 local savedPomodoro = loadPomodoroState()
 if savedPomodoro then
+    if savedPomodoro.workDuration and savedPomodoro.workDuration > 0 then
+        config.workDuration = savedPomodoro.workDuration
+    end
+    if savedPomodoro.shortBreakDuration and savedPomodoro.shortBreakDuration > 0 then
+        config.shortBreakDuration = savedPomodoro.shortBreakDuration
+    end
+    if savedPomodoro.longBreakDuration and savedPomodoro.longBreakDuration > 0 then
+        config.longBreakDuration = savedPomodoro.longBreakDuration
+    end
+    noctalia.state.set("pomodoro.config", config)
+
     totalSessions = math.max(1, math.min(12, savedPomodoro.totalSessions))
     sessionData = buildSessionData(totalSessions)
     noctalia.state.set("pomodoro.sessionData", sessionData)
@@ -409,11 +430,28 @@ noctalia.state.watch("pomodoro.config", function(newConfig)
     noctalia.state.set("pomodoro.state", getStateSnapshot())
 end)
 
-function onSettingChanged(_key: string, _value: any)
+function onSettingChanged(key: string, _value: any)
+    local prevWork = config.workDuration
+    local prevShort = config.shortBreakDuration
+    local prevLong = config.longBreakDuration
+
     config = loadConfig()
-    if not isRunning and not isDirty then
+
+    -- Only override active preset/template durations if the user explicitly edited a duration setting
+    if key ~= "work-duration" then
+        config.workDuration = prevWork
+    end
+    if key ~= "short-break-duration" then
+        config.shortBreakDuration = prevShort
+    end
+    if key ~= "long-break-duration" then
+        config.longBreakDuration = prevLong
+    end
+
+    if key == "default-sessions" and not isRunning and not isDirty then
         totalSessions = math.max(1, math.min(12, config.defaultSessions or 4))
     end
+
     sessionData = buildSessionData(totalSessions)
     noctalia.state.set("pomodoro.sessionData", sessionData)
     noctalia.state.set("pomodoro.config", config)
@@ -426,6 +464,7 @@ function onSettingChanged(_key: string, _value: any)
     if not isRunning and not isDirty then
         secondsLeft = getStageTotalSeconds()
     end
+    savePomodoroState()
     noctalia.state.set("pomodoro.state", getStateSnapshot())
 end
 

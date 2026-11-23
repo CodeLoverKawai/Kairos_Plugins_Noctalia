@@ -31,6 +31,14 @@
       "description": "Automatically start work timer after break",
       "label": "Auto-start Work"
     },
+    "break-complete-sound-path": {
+      "description": "Custom audio file path played when a break ends (Break -> Work)",
+      "label": "Break Complete Sound"
+    },
+    "work-complete-sound-path": {
+      "description": "Custom audio file path played when a work session ends (Work -> Break)",
+      "label": "Work Complete Sound"
+    },
     "bypass-noctalia-sound-globals": {
       "description": "Ignore Noctalia Shell's global sound settings. Use this to make the alarm sound play even when sounds are disabled in Noctalia config/GUI. Uses pw-play to play the sound directly through PipeWire, make sure to have it installed.",
       "label": "Bypass Noctalia Sound Globals"
