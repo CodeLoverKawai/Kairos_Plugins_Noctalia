@@ -21,7 +21,8 @@ local function formatTime(seconds)
   return `{m}:{string.format("%02d", s)}`
 end
 
-local STATE_FILE = "/home/kairos/.local/state/noctalia/plugins/data/codeloverkawai/timer_state.json"
+local homeDir = (os and os.getenv and os.getenv("HOME")) or "/home/rousseau"
+local STATE_FILE = homeDir .. "/.local/state/noctalia/plugins/data/codeloverkawai/timer_state.json"
 
 local function saveTimerState(state, remaining, duration)
   if not (noctalia and noctalia.writeFile) then
@@ -73,7 +74,21 @@ end)
 
 local function stopSound()
   if noctalia.runAsync then
-    noctalia.runAsync("/home/kairos/.local/bin/noctalia-audio-stop.sh")
+    noctalia.runAsync([[sh -c '
+      if [ -f /tmp/noctalia_timer_alarm.pid ]; then
+        PID=$(cat /tmp/noctalia_timer_alarm.pid)
+        pkill -P "$PID" 2>/dev/null || true
+        kill "$PID" 2>/dev/null || true
+        rm -f /tmp/noctalia_timer_alarm.pid
+      fi
+      pkill -f "[n]octalia_alarm_" 2>/dev/null || true
+      pkill -f "[f]fplay -nodisp" 2>/dev/null || true
+      if [ -f /tmp/noctalia_timer_orig_vol ]; then
+        ORIG_VOL=$(cat /tmp/noctalia_timer_orig_vol)
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
+        rm -f /tmp/noctalia_timer_orig_vol
+      fi
+    ']])
   end
   if noctalia.sound and noctalia.sound.stop then
     pcall(function()
@@ -98,7 +113,7 @@ local function playTickSound(isTock)
     dir = noctalia.pluginDir
   end
   if dir == "" then
-    dir = "/home/kairos/Documents/GitHub/Kairos_Plugins_Noctalia/timer/timer-sound"
+    dir = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/timer/timer-sound"
   end
 
   local soundFile = if isTock then `{dir}/tock.wav` else `{dir}/tick.wav`
@@ -136,7 +151,7 @@ local function playAlarmSound()
     end
 
     if dir == "" then
-      dir = "/home/kairos/Documents/GitHub/Kairos_Plugins_Noctalia/timer/timer-sound"
+      dir = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/timer/timer-sound"
     end
     audioTarget = `{dir}/alarm.mp3`
   end
@@ -146,12 +161,24 @@ local function playAlarmSound()
     repeatAlarm = true
   end
 
+  local boostAlarmVolume = noctalia.getConfig("boost_alarm_volume")
+  if boostAlarmVolume == nil then
+    boostAlarmVolume = true
+  end
+
+  stopSound()
   local safePath = audioTarget:gsub('"', '\\"')
 
   if noctalia.runAsync then
-    -- Save current volume and elevate default sink to 145% (1.45), play alarm with tight immediate loop
-    if repeatAlarm then
-      local loopCmd = string.format([[sh -c '
+    local volHeader = if boostAlarmVolume then [[
+        restore_vol() {
+          if [ -f /tmp/noctalia_timer_orig_vol ]; then
+            ORIG_VOL=$(cat /tmp/noctalia_timer_orig_vol)
+            wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
+            rm -f /tmp/noctalia_timer_orig_vol
+          fi
+        }
+        trap restore_vol EXIT INT TERM
         if [ ! -f /tmp/noctalia_timer_orig_vol ]; then
           CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \$2}")
           if [ -n "$CURR_VOL" ]; then
@@ -159,22 +186,23 @@ local function playAlarmSound()
           fi
         fi
         wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
+    ]] else ""
+
+    if repeatAlarm then
+      local loopCmd = string.format([[sh -c '
+        echo $$ > /tmp/noctalia_timer_alarm.pid
+        %s
         while true; do
           ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || break
         done
-      ' noctalia_alarm_loop "%s" &]], safePath)
+      ' noctalia_alarm_loop "%s" &]], volHeader, safePath)
       noctalia.runAsync(loopCmd)
     else
       local singleCmd = string.format([[sh -c '
-        if [ ! -f /tmp/noctalia_timer_orig_vol ]; then
-          CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \$2}")
-          if [ -n "$CURR_VOL" ]; then
-            echo "$CURR_VOL" > /tmp/noctalia_timer_orig_vol
-          fi
-        fi
-        wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
-        ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null
-      ' noctalia_alarm_single "%s" &]], safePath)
+        echo $$ > /tmp/noctalia_timer_alarm.pid
+        %s
+        ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || true
+      ' noctalia_alarm_single "%s" &]], volHeader, safePath)
       noctalia.runAsync(singleCmd)
     end
   elseif noctalia.sound and noctalia.sound.play then

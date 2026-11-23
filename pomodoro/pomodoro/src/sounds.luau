@@ -11,6 +11,7 @@ local tickSounds: { Sound } = {}
 local tockSounds: { Sound } = {}
 
 local bypassNoctaliaSoundGlobals = false
+local boostAlarmVolume = true
 
 local function playExternal(path: string)
     if not path or path == "" then
@@ -30,21 +31,37 @@ local function playAlarmExternal(path: string)
     if not path or path == "" then
         return
     end
+    M.stop()
     local safePath = path:gsub('"', '\\"')
     if noctalia and noctalia.runAsync then
-        -- Play alarm once, boost volume to 145%, and restore volume automatically when playback ends
-        local playCmd = string.format([[sh -c '
-            if [ ! -f /tmp/noctalia_pomodoro_orig_vol ]; then
-                CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \$2}")
-                if [ -n "$CURR_VOL" ]; then
-                    echo "$CURR_VOL" > /tmp/noctalia_pomodoro_orig_vol
+        if boostAlarmVolume then
+            local playCmd = string.format([[sh -c '
+                echo $$ > /tmp/noctalia_pomodoro_alarm.pid
+                restore_vol() {
+                    if [ -f /tmp/noctalia_pomodoro_orig_vol ]; then
+                        ORIG_VOL=$(cat /tmp/noctalia_pomodoro_orig_vol)
+                        wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
+                        rm -f /tmp/noctalia_pomodoro_orig_vol
+                    fi
+                }
+                trap restore_vol EXIT INT TERM
+                if [ ! -f /tmp/noctalia_pomodoro_orig_vol ]; then
+                    CURR_VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk "{print \$2}")
+                    if [ -n "$CURR_VOL" ]; then
+                        echo "$CURR_VOL" > /tmp/noctalia_pomodoro_orig_vol
+                    fi
                 fi
-            fi
-            wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
-            ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || aplay "$1" 2>/dev/null || true
-            /home/kairos/.local/bin/noctalia-audio-stop.sh 2>/dev/null || true
-        ' noctalia_pomodoro_alarm_single "%s" &]], safePath)
-        noctalia.runAsync(playCmd)
+                wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
+                ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || aplay "$1" 2>/dev/null || true
+            ' noctalia_pomodoro_alarm_single "%s" &]], safePath)
+            noctalia.runAsync(playCmd)
+        else
+            local playCmd = string.format([[sh -c '
+                echo $$ > /tmp/noctalia_pomodoro_alarm.pid
+                ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || aplay "$1" 2>/dev/null || true
+            ' noctalia_pomodoro_alarm_single "%s" &]], safePath)
+            noctalia.runAsync(playCmd)
+        end
     end
 end
 
@@ -110,9 +127,10 @@ local function loadSounds(entries: { Sound }, batchSize: number)
     loadBatch(1)
 end
 
-function M.init(opts: { bypassNoctaliaSoundGlobals: boolean?, useBundledAlarmSound: boolean?, enableWorkTimerSound: boolean? }?)
+function M.init(opts: { bypassNoctaliaSoundGlobals: boolean?, useBundledAlarmSound: boolean?, enableWorkTimerSound: boolean?, boostAlarmVolume: boolean? }?)
     local options = opts or {}
     bypassNoctaliaSoundGlobals = options.bypassNoctaliaSoundGlobals == true
+    boostAlarmVolume = if options.boostAlarmVolume ~= nil then options.boostAlarmVolume == true else true
     local useBundledAlarmSound = options.useBundledAlarmSound == true
     local enableWorkTimerSound = options.enableWorkTimerSound == true
 
@@ -125,7 +143,8 @@ function M.init(opts: { bypassNoctaliaSoundGlobals: boolean?, useBundledAlarmSou
         end
     end
     if not pluginDir or pluginDir == "" then
-        pluginDir = "/home/kairos/Documents/GitHub/Kairos_Plugins_Noctalia/pomodoro/pomodoro"
+        local homeDir = (os and os.getenv and os.getenv("HOME")) or "/home/rousseau"
+        pluginDir = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/pomodoro/pomodoro"
     end
 
     local resourcesDir = pluginDir .. "/resources/"
@@ -209,7 +228,21 @@ end
 
 function M.stop()
     if noctalia and noctalia.runAsync then
-        noctalia.runAsync("/home/kairos/.local/bin/noctalia-audio-stop.sh")
+        noctalia.runAsync([[sh -c '
+            if [ -f /tmp/noctalia_pomodoro_alarm.pid ]; then
+                PID=$(cat /tmp/noctalia_pomodoro_alarm.pid)
+                pkill -P "$PID" 2>/dev/null || true
+                kill "$PID" 2>/dev/null || true
+                rm -f /tmp/noctalia_pomodoro_alarm.pid
+            fi
+            pkill -f "[n]octalia_pomodoro_alarm_" 2>/dev/null || true
+            pkill -f "[f]fplay -nodisp" 2>/dev/null || true
+            if [ -f /tmp/noctalia_pomodoro_orig_vol ]; then
+                ORIG_VOL=$(cat /tmp/noctalia_pomodoro_orig_vol)
+                wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
+                rm -f /tmp/noctalia_pomodoro_orig_vol
+            fi
+        ']])
     end
     if noctalia and noctalia.sound and noctalia.sound.stop and alarmSound then
         pcall(function()

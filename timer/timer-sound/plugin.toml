@@ -42,6 +42,13 @@ label_key = "settings.repeat_alarm.label"
 description_key = "settings.repeat_alarm.description"
 default = true
 
+[[setting]]
+key = "boost_alarm_volume"
+type = "bool"
+label_key = "settings.boost_alarm_volume.label"
+description_key = "settings.boost_alarm_volume.description"
+default = true
+
 [[widget]]
 id = "bar"
 entry = "bar.luau"

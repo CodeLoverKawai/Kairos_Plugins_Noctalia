@@ -13,6 +13,7 @@ type Config = {
     enableWorkTimerSound: boolean,
     useBundledAlarmSound: boolean,
     bypassNoctaliaSoundGlobals: boolean,
+    boostAlarmVolume: boolean,
     workCompleteSoundPath: string,
     breakCompleteSoundPath: string,
 }
@@ -53,6 +54,7 @@ local function loadConfig(): Config
         enableWorkTimerSound = getBoolConfig("enable-work-timer-sound", false),
         useBundledAlarmSound = getBoolConfig("use-bundled-alarm-sound", true),
         bypassNoctaliaSoundGlobals = getBoolConfig("bypass-noctalia-sound-globals", true),
+        boostAlarmVolume = getBoolConfig("boost-alarm-volume", true),
         workCompleteSoundPath = getStringConfig("work-complete-sound-path", ""),
         breakCompleteSoundPath = getStringConfig("break-complete-sound-path", ""),
     }
@@ -80,6 +82,7 @@ sounds.init({
     bypassNoctaliaSoundGlobals = config.bypassNoctaliaSoundGlobals,
     useBundledAlarmSound = config.useBundledAlarmSound,
     enableWorkTimerSound = config.enableWorkTimerSound,
+    boostAlarmVolume = config.boostAlarmVolume,
 })
 
 local isRunning = false
@@ -140,7 +143,8 @@ local function getStateSnapshot()
     }
 end
 
-local STATE_FILE = "/home/kairos/.local/state/noctalia/plugins/data/codeloverkawai/pomodoro_state.json"
+local homeDir = (os and os.getenv and os.getenv("HOME")) or "/home/rousseau"
+local STATE_FILE = homeDir .. "/.local/state/noctalia/plugins/data/codeloverkawai/pomodoro_state.json"
 
 local function savePomodoroState()
     if not (noctalia and noctalia.writeFile) then
@@ -194,8 +198,11 @@ if savedPomodoro then
     totalSessions = math.max(1, math.min(12, savedPomodoro.totalSessions))
     sessionData = buildSessionData(totalSessions)
     noctalia.state.set("pomodoro.sessionData", sessionData)
-    sessionPtr = { session = savedPomodoro.session, stage = savedPomodoro.stage }
-    secondsLeft = savedPomodoro.secondsLeft
+    local restoredSession = math.max(1, math.min(totalSessions, savedPomodoro.session))
+    local restoredStage = if savedPomodoro.stage == 2 then 2 else 1
+    sessionPtr = { session = restoredSession, stage = restoredStage }
+    local maxStageSecs = getStageTotalSeconds()
+    secondsLeft = math.max(0, math.min(maxStageSecs, savedPomodoro.secondsLeft))
     isDirty = savedPomodoro.isDirty
     isCompleted = savedPomodoro.isCompleted
     isRunning = false -- Always restore in PAUSED state
@@ -245,14 +252,16 @@ local function handleStageFinished()
             resetTickClock()
         end
     end
+    savePomodoroState()
 end
 
 noctalia.state.watch("pomodoro.nextCommand", function(command)
-    if not command or type(command) ~= "string" then
+    if not command or type(command) ~= "string" or command == "" then
         return
     end
 
     if command == "toggle" then
+        sounds.stop()
         if isCompleted then
             isCompleted = false
             sessionPtr = { session = 1, stage = 1 }
@@ -268,6 +277,7 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
     elseif command == "skip" then
         isRunning = false
         resetTickClock()
+        sounds.stop()
         if not isCompleted then
             if sessionPtr.stage == 1 then
                 sessionPtr.stage = 2
@@ -340,7 +350,8 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
         noctalia.state.set("pomodoro.sessionData", sessionData)
         noctalia.state.set("pomodoro.config", config)
 
-        if not isRunning and not isDirty then
+        if not isRunning then
+            isCompleted = false
             secondsLeft = getStageTotalSeconds()
         end
     else
@@ -372,6 +383,8 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
 
     savePomodoroState()
     noctalia.state.set("pomodoro.state", getStateSnapshot())
+    -- Clear command so subsequent identical commands (e.g. toggle -> toggle) always fire watchers
+    noctalia.state.set("pomodoro.nextCommand", "")
 end)
 
 noctalia.state.watch("pomodoro.config", function(newConfig)
@@ -398,6 +411,9 @@ end)
 
 function onSettingChanged(_key: string, _value: any)
     config = loadConfig()
+    if not isRunning and not isDirty then
+        totalSessions = math.max(1, math.min(12, config.defaultSessions or 4))
+    end
     sessionData = buildSessionData(totalSessions)
     noctalia.state.set("pomodoro.sessionData", sessionData)
     noctalia.state.set("pomodoro.config", config)
@@ -405,6 +421,7 @@ function onSettingChanged(_key: string, _value: any)
         bypassNoctaliaSoundGlobals = config.bypassNoctaliaSoundGlobals,
         useBundledAlarmSound = config.useBundledAlarmSound,
         enableWorkTimerSound = config.enableWorkTimerSound,
+        boostAlarmVolume = config.boostAlarmVolume,
     })
     if not isRunning and not isDirty then
         secondsLeft = getStageTotalSeconds()

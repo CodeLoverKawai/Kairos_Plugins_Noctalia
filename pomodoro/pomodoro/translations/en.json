@@ -69,10 +69,20 @@
         "label": "Work Icon"
       }
     },
+    "boost-alarm-volume": {
+      "description": "Temporarily boost system volume to 145% while alarm plays, then restore original volume.",
+      "label": "Boost Alarm Volume (145%)"
+    },
     "work-duration": {
       "description": "Duration of each work session in minutes",
       "label": "Work Duration"
     }
+  },
+  "paused": "Paused",
+  "preset": {
+    "clasico": "Classic (25m)",
+    "deep": "Deep (50m)",
+    "ultra": "Ultra (90m)"
   },
   "short-break": "Short Break",
   "target-sessions": "Target Sessions",

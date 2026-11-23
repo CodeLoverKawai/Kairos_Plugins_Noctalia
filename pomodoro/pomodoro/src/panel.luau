@@ -199,11 +199,13 @@ local function render()
             color = "on_surface_variant",
         }))
     else
+        local isPausedMidSession = not isRunning and not isCompleted and secondsLeft > 0 and secondsLeft < stageTotalSeconds
+        local displayStageName = if isPausedMidSession then string.format("%s • %s", stageName, noctalia.tr("paused")) else stageName
         table.insert(centerContent, ui.label({
-            text = stageName,
+            text = displayStageName,
             fontSize = 15,
             fontWeight = "medium",
-            color = "primary",
+            color = if isPausedMidSession then "secondary" else "primary",
         }))
         table.insert(centerContent, ui.label({
             text = formatCountdown(secondsLeft, stageTotalSeconds),
@@ -291,22 +293,22 @@ local function render()
             -- 2b. Named Presets Row
             ui.row({ align = "center", justify = "center", gap = 8 }, {
                 ui.button({
-                    text = "Clásico (25m)",
-                    variant = if stageTotalSeconds == 25 * 60 and not isRunning then "primary" else "ghost",
+                    text = noctalia.tr("preset.clasico"),
+                    variant = if (noctalia.state.get("pomodoro.config") or {}).workDuration == 25 then "primary" else "ghost",
                     controlSize = "sm",
                     onClick = "onPresetClasico",
                     height = 24,
                 }),
                 ui.button({
-                    text = "Deep (50m)",
-                    variant = if stageTotalSeconds == 50 * 60 and not isRunning then "primary" else "ghost",
+                    text = noctalia.tr("preset.deep"),
+                    variant = if (noctalia.state.get("pomodoro.config") or {}).workDuration == 50 then "primary" else "ghost",
                     controlSize = "sm",
                     onClick = "onPresetDeep",
                     height = 24,
                 }),
                 ui.button({
-                    text = "Ultra (90m)",
-                    variant = if stageTotalSeconds == 90 * 60 and not isRunning then "primary" else "ghost",
+                    text = noctalia.tr("preset.ultra"),
+                    variant = if (noctalia.state.get("pomodoro.config") or {}).workDuration == 90 then "primary" else "ghost",
                     controlSize = "sm",
                     onClick = "onPresetUltra",
                     height = 24,

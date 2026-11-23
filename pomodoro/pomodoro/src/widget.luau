@@ -56,6 +56,10 @@ function onClick()
     noctalia.togglePanel("codeloverkawai/pomodoro:panel")
 end
 
+function onRightClick()
+    noctalia.state.set("pomodoro.nextCommand", "toggle")
+end
+
 local function render()
     local state = noctalia.state.get("pomodoro.state")
     local sessionData = noctalia.state.get("pomodoro.sessionData")

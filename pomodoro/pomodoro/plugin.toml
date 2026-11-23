@@ -91,6 +91,13 @@ description_key = "settings.bypass-noctalia-sound-globals.description"
 visible_when    = { key = "use-bundled-alarm-sound", values = ["true"] }
 default         = true
 
+[[setting]]
+key             = "boost-alarm-volume"
+type            = "bool"
+label_key       = "settings.boost-alarm-volume.label"
+description_key = "settings.boost-alarm-volume.description"
+default         = true
+
 [[widget]]
 id    = "widget"
 entry = "src/widget.luau"

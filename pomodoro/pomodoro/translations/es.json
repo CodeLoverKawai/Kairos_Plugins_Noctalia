@@ -77,10 +77,20 @@
         "label": "Icono de trabajo"
       }
     },
+    "boost-alarm-volume": {
+      "description": "Sube temporalmente el volumen del sistema al 145% mientras suena la alarma y luego restaura el volumen original.",
+      "label": "Subir volumen de alarma (145%)"
+    },
     "work-duration": {
       "description": "Duración de cada sesión de trabajo en minutos",
       "label": "Duración de trabajo"
     }
+  },
+  "paused": "Pausado",
+  "preset": {
+    "clasico": "Clásico (25m)",
+    "deep": "Deep (50m)",
+    "ultra": "Ultra (90m)"
   },
   "short-break": "Descanso corto",
   "target-sessions": "Objetivo de sesiones",
