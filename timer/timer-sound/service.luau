@@ -199,12 +199,12 @@ local function playAlarmSound()
     ]] else ""
 
     local playOne = [[
-      if command -v ffplay >/dev/null 2>&1; then
-        ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
-      elif command -v pw-play >/dev/null 2>&1; then
+      if command -v pw-play >/dev/null 2>&1; then
         pw-play "$1" 2>/dev/null
       elif command -v paplay >/dev/null 2>&1; then
         paplay "$1" 2>/dev/null
+      elif command -v ffplay >/dev/null 2>&1; then
+        ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
       else
         false
       fi

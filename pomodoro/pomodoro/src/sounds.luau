@@ -60,24 +60,24 @@ local function playAlarmExternal(path: string)
                     fi
                 fi
                 wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
-                if command -v ffplay >/dev/null 2>&1; then
-                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || true
-                elif command -v pw-play >/dev/null 2>&1; then
+                if command -v pw-play >/dev/null 2>&1; then
                     pw-play "$1" 2>/dev/null || true
                 elif command -v paplay >/dev/null 2>&1; then
                     paplay "$1" 2>/dev/null || true
+                elif command -v ffplay >/dev/null 2>&1; then
+                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || true
                 fi
             ' noctalia_pomodoro_alarm_single "%s" &]], killPrev, safePath)
             noctalia.runAsync(playCmd)
         else
             local playCmd = string.format([[sh -c '
                 %s
-                if command -v ffplay >/dev/null 2>&1; then
-                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || true
-                elif command -v pw-play >/dev/null 2>&1; then
+                if command -v pw-play >/dev/null 2>&1; then
                     pw-play "$1" 2>/dev/null || true
                 elif command -v paplay >/dev/null 2>&1; then
                     paplay "$1" 2>/dev/null || true
+                elif command -v ffplay >/dev/null 2>&1; then
+                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || true
                 fi
             ' noctalia_pomodoro_alarm_single "%s" &]], killPrev, safePath)
             noctalia.runAsync(playCmd)
