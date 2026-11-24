@@ -31,12 +31,20 @@ local function playAlarmExternal(path: string)
     if not path or path == "" then
         return
     end
-    M.stop()
     local safePath = path:gsub('"', '\\"')
     if noctalia and noctalia.runAsync then
+        local killPrev = [[
+            if [ -f /tmp/noctalia_pomodoro_alarm.pid ]; then
+                OLD_PID=$(cat /tmp/noctalia_pomodoro_alarm.pid)
+                rm -f /tmp/noctalia_pomodoro_alarm.pid
+                kill -9 "$OLD_PID" 2>/dev/null || true
+                pkill -9 -P "$OLD_PID" 2>/dev/null || true
+            fi
+            echo $$ > /tmp/noctalia_pomodoro_alarm.pid
+        ]]
         if boostAlarmVolume then
             local playCmd = string.format([[sh -c '
-                echo $$ > /tmp/noctalia_pomodoro_alarm.pid
+                %s
                 restore_vol() {
                     if [ -f /tmp/noctalia_pomodoro_orig_vol ]; then
                         ORIG_VOL=$(cat /tmp/noctalia_pomodoro_orig_vol)
@@ -52,14 +60,26 @@ local function playAlarmExternal(path: string)
                     fi
                 fi
                 wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
-                ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || aplay "$1" 2>/dev/null || true
-            ' noctalia_pomodoro_alarm_single "%s" &]], safePath)
+                if command -v ffplay >/dev/null 2>&1; then
+                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || true
+                elif command -v pw-play >/dev/null 2>&1; then
+                    pw-play "$1" 2>/dev/null || true
+                elif command -v paplay >/dev/null 2>&1; then
+                    paplay "$1" 2>/dev/null || true
+                fi
+            ' noctalia_pomodoro_alarm_single "%s" &]], killPrev, safePath)
             noctalia.runAsync(playCmd)
         else
             local playCmd = string.format([[sh -c '
-                echo $$ > /tmp/noctalia_pomodoro_alarm.pid
-                ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || pw-play "$1" 2>/dev/null || paplay "$1" 2>/dev/null || aplay "$1" 2>/dev/null || true
-            ' noctalia_pomodoro_alarm_single "%s" &]], safePath)
+                %s
+                if command -v ffplay >/dev/null 2>&1; then
+                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || true
+                elif command -v pw-play >/dev/null 2>&1; then
+                    pw-play "$1" 2>/dev/null || true
+                elif command -v paplay >/dev/null 2>&1; then
+                    paplay "$1" 2>/dev/null || true
+                fi
+            ' noctalia_pomodoro_alarm_single "%s" &]], killPrev, safePath)
             noctalia.runAsync(playCmd)
         end
     end

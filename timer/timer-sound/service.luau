@@ -167,10 +167,19 @@ local function playAlarmSound()
     boostAlarmVolume = true
   end
 
-  stopSound()
   local safePath = audioTarget:gsub('"', '\\"')
 
   if noctalia.runAsync then
+    local killPrev = [[
+      if [ -f /tmp/noctalia_timer_alarm.pid ]; then
+        OLD_PID=$(cat /tmp/noctalia_timer_alarm.pid)
+        rm -f /tmp/noctalia_timer_alarm.pid
+        kill -9 "$OLD_PID" 2>/dev/null || true
+        pkill -9 -P "$OLD_PID" 2>/dev/null || true
+      fi
+      echo $$ > /tmp/noctalia_timer_alarm.pid
+    ]]
+
     local volHeader = if boostAlarmVolume then [[
         restore_vol() {
           if [ -f /tmp/noctalia_timer_orig_vol ]; then
@@ -203,19 +212,19 @@ local function playAlarmSound()
 
     if repeatAlarm then
       local loopCmd = string.format([[sh -c '
-        echo $$ > /tmp/noctalia_timer_alarm.pid
+        %s
         %s
         while true; do
           %s || break
         done
-      ' noctalia_alarm_loop "%s" &]], volHeader, playOne, safePath)
+      ' noctalia_alarm_loop "%s" &]], killPrev, volHeader, playOne, safePath)
       noctalia.runAsync(loopCmd)
     else
       local singleCmd = string.format([[sh -c '
-        echo $$ > /tmp/noctalia_timer_alarm.pid
+        %s
         %s
         %s || true
-      ' noctalia_alarm_single "%s" &]], volHeader, playOne, safePath)
+      ' noctalia_alarm_single "%s" &]], killPrev, volHeader, playOne, safePath)
       noctalia.runAsync(singleCmd)
     end
   elseif noctalia.sound and noctalia.sound.play then
