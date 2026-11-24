@@ -81,10 +81,31 @@
       "description": "Temporarily boost system volume to 145% while alarm plays, then restore original volume.",
       "label": "Boost Alarm Volume (145%)"
     },
+    "enable-work-music": {
+      "description": "Play a background song on loop during work sessions",
+      "label": "Work Background Music"
+    },
+    "work-music-path": {
+      "description": "Audio file to loop during work sessions",
+      "label": "Work Music File"
+    },
+    "enable-break-music": {
+      "description": "Play a background song on loop during breaks",
+      "label": "Break Background Music"
+    },
+    "break-music-path": {
+      "description": "Audio file to loop during breaks",
+      "label": "Break Music File"
+    },
     "work-duration": {
       "description": "Duration of each work session in minutes",
       "label": "Work Duration"
     }
+  },
+  "music": {
+    "mute": "Mute",
+    "muted": "Muted",
+    "unmute": "Unmute"
   },
   "paused": "Paused",
   "preset": {

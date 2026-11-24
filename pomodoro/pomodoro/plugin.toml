@@ -98,6 +98,36 @@ label_key       = "settings.boost-alarm-volume.label"
 description_key = "settings.boost-alarm-volume.description"
 default         = true
 
+[[setting]]
+key             = "enable-work-music"
+type            = "bool"
+label_key       = "settings.enable-work-music.label"
+description_key = "settings.enable-work-music.description"
+default         = false
+
+[[setting]]
+key             = "work-music-path"
+type            = "file"
+label_key       = "settings.work-music-path.label"
+description_key = "settings.work-music-path.description"
+visible_when    = { key = "enable-work-music", values = ["true"] }
+default         = ""
+
+[[setting]]
+key             = "enable-break-music"
+type            = "bool"
+label_key       = "settings.enable-break-music.label"
+description_key = "settings.enable-break-music.description"
+default         = false
+
+[[setting]]
+key             = "break-music-path"
+type            = "file"
+label_key       = "settings.break-music-path.label"
+description_key = "settings.break-music-path.description"
+visible_when    = { key = "enable-break-music", values = ["true"] }
+default         = ""
+
 [[widget]]
 id    = "widget"
 entry = "src/widget.luau"

@@ -246,6 +246,58 @@ function M.playAlarm()
     M.playWorkAlarm(nil)
 end
 
+local currentMusicPath: string? = nil
+
+function M.startMusic(path: string?)
+    if not path or path == "" then
+        M.stopMusic()
+        return
+    end
+    if currentMusicPath == path then
+        return
+    end
+    currentMusicPath = path
+    local safePath = path:gsub('"', '\\"')
+    if noctalia and noctalia.runAsync then
+        local cmd = string.format([[sh -c '
+            if [ -f /tmp/noctalia_pomodoro_music.pid ]; then
+                OLD_PID=$(cat /tmp/noctalia_pomodoro_music.pid)
+                rm -f /tmp/noctalia_pomodoro_music.pid
+                kill -9 "$OLD_PID" 2>/dev/null || true
+                pkill -9 -P "$OLD_PID" 2>/dev/null || true
+            fi
+            echo $$ > /tmp/noctalia_pomodoro_music.pid
+            while true; do
+                if command -v pw-play >/dev/null 2>&1; then
+                    pw-play "$1" 2>/dev/null || break
+                elif command -v paplay >/dev/null 2>&1; then
+                    paplay "$1" 2>/dev/null || break
+                elif command -v ffplay >/dev/null 2>&1; then
+                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || break
+                else
+                    break
+                fi
+            done
+        ' noctalia_pomodoro_music "%s" &]], safePath)
+        noctalia.runAsync(cmd)
+    end
+end
+
+function M.stopMusic()
+    currentMusicPath = nil
+    if noctalia and noctalia.runAsync then
+        noctalia.runAsync([[sh -c '
+            if [ -f /tmp/noctalia_pomodoro_music.pid ]; then
+                PID=$(cat /tmp/noctalia_pomodoro_music.pid)
+                rm -f /tmp/noctalia_pomodoro_music.pid
+                kill -9 "$PID" 2>/dev/null || true
+                pkill -9 -P "$PID" 2>/dev/null || true
+            fi
+            pkill -9 -f "[n]octalia_pomodoro_music" 2>/dev/null || true
+        ']])
+    end
+end
+
 function M.stop()
     if noctalia and noctalia.runAsync then
         noctalia.runAsync([[sh -c '
@@ -256,8 +308,6 @@ function M.stop()
                 pkill -9 -P "$PID" 2>/dev/null || true
             fi
             pkill -9 -f "[n]octalia_pomodoro_alarm_" 2>/dev/null || true
-            pkill -9 -f "[f]fplay -nodisp" 2>/dev/null || true
-            pkill -9 -x pw-play 2>/dev/null || true
             if [ -f /tmp/noctalia_pomodoro_orig_vol ]; then
                 ORIG_VOL=$(cat /tmp/noctalia_pomodoro_orig_vol)
                 wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true

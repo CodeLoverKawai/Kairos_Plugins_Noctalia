@@ -14,6 +14,10 @@ type Config = {
     useBundledAlarmSound: boolean,
     bypassNoctaliaSoundGlobals: boolean,
     boostAlarmVolume: boolean,
+    enableWorkMusic: boolean,
+    workMusicPath: string,
+    enableBreakMusic: boolean,
+    breakMusicPath: string,
     workCompleteSoundPath: string,
     breakCompleteSoundPath: string,
 }
@@ -55,6 +59,10 @@ local function loadConfig(): Config
         useBundledAlarmSound = getBoolConfig("use-bundled-alarm-sound", true),
         bypassNoctaliaSoundGlobals = getBoolConfig("bypass-noctalia-sound-globals", true),
         boostAlarmVolume = getBoolConfig("boost-alarm-volume", true),
+        enableWorkMusic = getBoolConfig("enable-work-music", false),
+        workMusicPath = getStringConfig("work-music-path", ""),
+        enableBreakMusic = getBoolConfig("enable-break-music", false),
+        breakMusicPath = getStringConfig("break-music-path", ""),
         workCompleteSoundPath = getStringConfig("work-complete-sound-path", ""),
         breakCompleteSoundPath = getStringConfig("break-complete-sound-path", ""),
     }
@@ -89,9 +97,23 @@ local isRunning = false
 local sessionPtr: SessionPtr = { session = 1, stage = 1 }
 local isDirty = false
 local isCompleted = false
+local isMusicMuted = false
 local secondsLeft = 0
 local tickAnchorSecond = nil
 local lastProcessedSecond = nil
+
+local function syncMusic()
+    if isRunning and not isCompleted and not isMusicMuted then
+        if sessionPtr.stage == 1 and config.enableWorkMusic and config.workMusicPath ~= "" then
+            sounds.startMusic(config.workMusicPath)
+            return
+        elseif sessionPtr.stage == 2 and config.enableBreakMusic and config.breakMusicPath ~= "" then
+            sounds.startMusic(config.breakMusicPath)
+            return
+        end
+    end
+    sounds.stopMusic()
+end
 
 local function resetTickClock()
     tickAnchorSecond = nil
@@ -131,6 +153,8 @@ end
 
 local function getStateSnapshot()
     local stageTotal = getStageTotalSeconds()
+    local musicConfigured = (config.enableWorkMusic and config.workMusicPath ~= "")
+        or (config.enableBreakMusic and config.breakMusicPath ~= "")
     return {
         isRunning = isRunning,
         secondsLeft = secondsLeft,
@@ -140,6 +164,8 @@ local function getStateSnapshot()
         stageTotalSeconds = stageTotal,
         isCompleted = isCompleted,
         isDirty = isDirty,
+        isMusicMuted = isMusicMuted,
+        musicConfigured = musicConfigured,
     }
 end
 
@@ -273,6 +299,7 @@ local function handleStageFinished()
             resetTickClock()
         end
     end
+    syncMusic()
     savePomodoroState()
 end
 
@@ -281,7 +308,9 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
         return
     end
 
-    if command == "toggle" then
+    if command == "toggleMusicMute" then
+        isMusicMuted = not isMusicMuted
+    elseif command == "toggle" then
         sounds.stop()
         if isCompleted then
             isCompleted = false
@@ -402,6 +431,7 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
         end
     end
 
+    syncMusic()
     savePomodoroState()
     noctalia.state.set("pomodoro.state", getStateSnapshot())
     -- Clear command so subsequent identical commands (e.g. toggle -> toggle) always fire watchers
@@ -464,9 +494,13 @@ function onSettingChanged(key: string, _value: any)
     if not isRunning and not isDirty then
         secondsLeft = getStageTotalSeconds()
     end
+    syncMusic()
     savePomodoroState()
     noctalia.state.set("pomodoro.state", getStateSnapshot())
 end
+
+-- Stop any lingering background music on initialization
+sounds.stopMusic()
 
 -- Initial state broadcast
 noctalia.state.set("pomodoro.state", getStateSnapshot())

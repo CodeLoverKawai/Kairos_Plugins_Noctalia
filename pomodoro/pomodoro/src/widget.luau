@@ -60,6 +60,10 @@ function onRightClick()
     noctalia.state.set("pomodoro.nextCommand", "toggle")
 end
 
+function onMiddleClick()
+    noctalia.state.set("pomodoro.nextCommand", "toggleMusicMute")
+end
+
 local function render()
     local state = noctalia.state.get("pomodoro.state")
     local sessionData = noctalia.state.get("pomodoro.sessionData")

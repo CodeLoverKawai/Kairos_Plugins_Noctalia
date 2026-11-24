@@ -81,10 +81,31 @@
       "description": "Sube temporalmente el volumen del sistema al 145% mientras suena la alarma y luego restaura el volumen original.",
       "label": "Subir volumen de alarma (145%)"
     },
+    "enable-work-music": {
+      "description": "Reproduce una canción en bucle durante las sesiones de trabajo",
+      "label": "Música de fondo en trabajo"
+    },
+    "work-music-path": {
+      "description": "Archivo de audio para reproducir en bucle durante el trabajo",
+      "label": "Canción de trabajo"
+    },
+    "enable-break-music": {
+      "description": "Reproduce una canción en bucle durante los descansos",
+      "label": "Música de fondo en descanso"
+    },
+    "break-music-path": {
+      "description": "Archivo de audio para reproducir en bucle durante el descanso",
+      "label": "Canción de descanso"
+    },
     "work-duration": {
       "description": "Duración de cada sesión de trabajo en minutos",
       "label": "Duración de trabajo"
     }
+  },
+  "music": {
+    "mute": "Silenciar",
+    "muted": "Silenciada",
+    "unmute": "Activar"
   },
   "paused": "Pausado",
   "preset": {

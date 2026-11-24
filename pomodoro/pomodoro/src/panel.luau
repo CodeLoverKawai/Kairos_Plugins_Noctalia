@@ -110,6 +110,10 @@ function onPresetUltra()
     noctalia.state.set("pomodoro.nextCommand", "setPreset:ultra")
 end
 
+function onToggleMusicMute()
+    noctalia.state.set("pomodoro.nextCommand", "toggleMusicMute")
+end
+
 local function render()
     local state = noctalia.state.get("pomodoro.state")
     local sessionData = noctalia.state.get("pomodoro.sessionData")
@@ -233,6 +237,32 @@ local function render()
         }))
     end
 
+    local headerRight = {}
+    if state and state.musicConfigured then
+        table.insert(headerRight, ui.button({
+            glyph = if state.isMusicMuted then "volume-off" else "volume",
+            variant = if state.isMusicMuted then "destructive" else "secondary",
+            controlSize = "sm",
+            onClick = "onToggleMusicMute",
+            width = 32,
+            height = 24,
+        }))
+    end
+    table.insert(headerRight, ui.row({
+        align = "center",
+        paddingH = 8,
+        paddingV = 2,
+        radius = 10,
+        fill = "surface_variant/0.5",
+    }, {
+        ui.label({
+            text = sessionBadgeText,
+            fontSize = 12,
+            fontWeight = "medium",
+            color = "primary",
+        }),
+    }))
+
     panel.render(
         ui.column({ flexGrow = 1, gap = 8, padding = 12 }, {
             -- 1. Header Row
@@ -246,20 +276,7 @@ local function render()
                         color = "on_surface",
                     }),
                 }),
-                ui.row({
-                    align = "center",
-                    paddingH = 8,
-                    paddingV = 2,
-                    radius = 10,
-                    fill = "surface_variant/0.5",
-                }, {
-                    ui.label({
-                        text = sessionBadgeText,
-                        fontSize = 12,
-                        fontWeight = "medium",
-                        color = "primary",
-                    }),
-                }),
+                ui.row({ align = "center", gap = 6 }, headerRight),
             }),
 
             -- 2. Session Configurator Row
