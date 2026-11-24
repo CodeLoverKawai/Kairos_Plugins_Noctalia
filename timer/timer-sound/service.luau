@@ -83,7 +83,7 @@ local function stopSound()
       fi
       pkill -9 -f "[n]octalia_alarm_" 2>/dev/null || true
       pkill -9 -f "[f]fplay -nodisp" 2>/dev/null || true
-      pkill -9 -f "[p]w-play" 2>/dev/null || true
+      pkill -9 -x pw-play 2>/dev/null || true
       if [ -f /tmp/noctalia_timer_orig_vol ]; then
         ORIG_VOL=$(cat /tmp/noctalia_timer_orig_vol)
         wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
