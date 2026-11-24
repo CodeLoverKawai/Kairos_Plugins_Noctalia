@@ -78,8 +78,9 @@ local function stopSound()
       if [ -f /tmp/noctalia_timer_alarm.pid ]; then
         PID=$(cat /tmp/noctalia_timer_alarm.pid)
         rm -f /tmp/noctalia_timer_alarm.pid
-        kill -9 "$PID" 2>/dev/null || true
+        kill -STOP "$PID" 2>/dev/null || true
         pkill -9 -P "$PID" 2>/dev/null || true
+        kill -9 "$PID" 2>/dev/null || true
       fi
       pkill -9 -f "[n]octalia_alarm_" 2>/dev/null || true
       pkill -9 -f "[f]fplay -nodisp" 2>/dev/null || true
@@ -174,8 +175,9 @@ local function playAlarmSound()
       if [ -f /tmp/noctalia_timer_alarm.pid ]; then
         OLD_PID=$(cat /tmp/noctalia_timer_alarm.pid)
         rm -f /tmp/noctalia_timer_alarm.pid
-        kill -9 "$OLD_PID" 2>/dev/null || true
+        kill -STOP "$OLD_PID" 2>/dev/null || true
         pkill -9 -P "$OLD_PID" 2>/dev/null || true
+        kill -9 "$OLD_PID" 2>/dev/null || true
       fi
       echo $$ > /tmp/noctalia_timer_alarm.pid
     ]]

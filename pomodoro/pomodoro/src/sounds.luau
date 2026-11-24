@@ -37,8 +37,9 @@ local function playAlarmExternal(path: string)
             if [ -f /tmp/noctalia_pomodoro_alarm.pid ]; then
                 OLD_PID=$(cat /tmp/noctalia_pomodoro_alarm.pid)
                 rm -f /tmp/noctalia_pomodoro_alarm.pid
-                kill -9 "$OLD_PID" 2>/dev/null || true
+                kill -STOP "$OLD_PID" 2>/dev/null || true
                 pkill -9 -P "$OLD_PID" 2>/dev/null || true
+                kill -9 "$OLD_PID" 2>/dev/null || true
             fi
             echo $$ > /tmp/noctalia_pomodoro_alarm.pid
         ]]
@@ -265,8 +266,9 @@ function M.startMusic(path: string?, mode: string?)
             if [ -f /tmp/noctalia_pomodoro_music.pid ]; then
                 OLD_PID=$(cat /tmp/noctalia_pomodoro_music.pid)
                 rm -f /tmp/noctalia_pomodoro_music.pid
-                kill -9 "$OLD_PID" 2>/dev/null || true
+                kill -STOP "$OLD_PID" 2>/dev/null || true
                 pkill -9 -P "$OLD_PID" 2>/dev/null || true
+                kill -9 "$OLD_PID" 2>/dev/null || true
             fi
             echo $$ > /tmp/noctalia_pomodoro_music.pid
 
@@ -314,8 +316,9 @@ function M.stopMusic()
             if [ -f /tmp/noctalia_pomodoro_music.pid ]; then
                 PID=$(cat /tmp/noctalia_pomodoro_music.pid)
                 rm -f /tmp/noctalia_pomodoro_music.pid
-                kill -9 "$PID" 2>/dev/null || true
+                kill -STOP "$PID" 2>/dev/null || true
                 pkill -9 -P "$PID" 2>/dev/null || true
+                kill -9 "$PID" 2>/dev/null || true
             fi
             pkill -9 -f "[n]octalia_pomodoro_music" 2>/dev/null || true
         ']])
@@ -328,8 +331,9 @@ function M.stop()
             if [ -f /tmp/noctalia_pomodoro_alarm.pid ]; then
                 PID=$(cat /tmp/noctalia_pomodoro_alarm.pid)
                 rm -f /tmp/noctalia_pomodoro_alarm.pid
-                kill -9 "$PID" 2>/dev/null || true
+                kill -STOP "$PID" 2>/dev/null || true
                 pkill -9 -P "$PID" 2>/dev/null || true
+                kill -9 "$PID" 2>/dev/null || true
             fi
             pkill -9 -f "[n]octalia_pomodoro_alarm_" 2>/dev/null || true
             if [ -f /tmp/noctalia_pomodoro_orig_vol ]; then
