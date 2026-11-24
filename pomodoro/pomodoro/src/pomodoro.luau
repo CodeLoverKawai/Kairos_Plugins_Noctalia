@@ -15,8 +15,10 @@ type Config = {
     bypassNoctaliaSoundGlobals: boolean,
     boostAlarmVolume: boolean,
     enableWorkMusic: boolean,
+    workMusicMode: string,
     workMusicPath: string,
     enableBreakMusic: boolean,
+    breakMusicMode: string,
     breakMusicPath: string,
     workCompleteSoundPath: string,
     breakCompleteSoundPath: string,
@@ -60,8 +62,10 @@ local function loadConfig(): Config
         bypassNoctaliaSoundGlobals = getBoolConfig("bypass-noctalia-sound-globals", true),
         boostAlarmVolume = getBoolConfig("boost-alarm-volume", true),
         enableWorkMusic = getBoolConfig("enable-work-music", false),
+        workMusicMode = getStringConfig("work-music-mode", "single"),
         workMusicPath = getStringConfig("work-music-path", ""),
         enableBreakMusic = getBoolConfig("enable-break-music", false),
+        breakMusicMode = getStringConfig("break-music-mode", "single"),
         breakMusicPath = getStringConfig("break-music-path", ""),
         workCompleteSoundPath = getStringConfig("work-complete-sound-path", ""),
         breakCompleteSoundPath = getStringConfig("break-complete-sound-path", ""),
@@ -105,10 +109,10 @@ local lastProcessedSecond = nil
 local function syncMusic()
     if isRunning and not isCompleted and not isMusicMuted then
         if sessionPtr.stage == 1 and config.enableWorkMusic and config.workMusicPath ~= "" then
-            sounds.startMusic(config.workMusicPath)
+            sounds.startMusic(config.workMusicPath, config.workMusicMode)
             return
         elseif sessionPtr.stage == 2 and config.enableBreakMusic and config.breakMusicPath ~= "" then
-            sounds.startMusic(config.breakMusicPath)
+            sounds.startMusic(config.breakMusicPath, config.breakMusicMode)
             return
         end
     end

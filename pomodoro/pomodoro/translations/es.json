@@ -82,20 +82,34 @@
       "label": "Subir volumen de alarma (145%)"
     },
     "enable-work-music": {
-      "description": "Reproduce una canción en bucle durante las sesiones de trabajo",
+      "description": "Reproduce música de fondo durante las sesiones de trabajo",
       "label": "Música de fondo en trabajo"
     },
+    "work-music-mode": {
+      "description": "Repetir una sola canción o reproducir en aleatorio todas las canciones de la carpeta",
+      "label": "Modo de música (trabajo)"
+    },
     "work-music-path": {
-      "description": "Archivo de audio para reproducir en bucle durante el trabajo",
-      "label": "Canción de trabajo"
+      "description": "Archivo o carpeta de audio (en modo Aleatorio usa todas las canciones de la carpeta)",
+      "label": "Canción o carpeta de trabajo"
     },
     "enable-break-music": {
-      "description": "Reproduce una canción en bucle durante los descansos",
+      "description": "Reproduce música de fondo durante los descansos",
       "label": "Música de fondo en descanso"
     },
+    "break-music-mode": {
+      "description": "Repetir una sola canción o reproducir en aleatorio todas las canciones de la carpeta",
+      "label": "Modo de música (descanso)"
+    },
     "break-music-path": {
-      "description": "Archivo de audio para reproducir en bucle durante el descanso",
-      "label": "Canción de descanso"
+      "description": "Archivo o carpeta de audio (en modo Aleatorio usa todas las canciones de la carpeta)",
+      "label": "Canción o carpeta de descanso"
+    },
+    "music-mode": {
+      "options": {
+        "shuffle": "Aleatorio (carpeta)",
+        "single": "Una canción (bucle)"
+      }
     },
     "work-duration": {
       "description": "Duración de cada sesión de trabajo en minutos",

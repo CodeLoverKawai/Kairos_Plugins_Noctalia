@@ -82,20 +82,34 @@
       "label": "Boost Alarm Volume (145%)"
     },
     "enable-work-music": {
-      "description": "Play a background song on loop during work sessions",
+      "description": "Play background music during work sessions",
       "label": "Work Background Music"
     },
+    "work-music-mode": {
+      "description": "Loop a single song or shuffle all songs in the selected folder",
+      "label": "Work Music Mode"
+    },
     "work-music-path": {
-      "description": "Audio file to loop during work sessions",
-      "label": "Work Music File"
+      "description": "Audio file or folder (in Shuffle mode, picks all songs in the file's folder)",
+      "label": "Work Music File / Folder"
     },
     "enable-break-music": {
-      "description": "Play a background song on loop during breaks",
+      "description": "Play background music during breaks",
       "label": "Break Background Music"
     },
+    "break-music-mode": {
+      "description": "Loop a single song or shuffle all songs in the selected folder",
+      "label": "Break Music Mode"
+    },
     "break-music-path": {
-      "description": "Audio file to loop during breaks",
-      "label": "Break Music File"
+      "description": "Audio file or folder (in Shuffle mode, picks all songs in the file's folder)",
+      "label": "Break Music File / Folder"
+    },
+    "music-mode": {
+      "options": {
+        "shuffle": "Shuffle Folder",
+        "single": "Single Song (Loop)"
+      }
     },
     "work-duration": {
       "description": "Duration of each work session in minutes",

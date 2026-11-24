@@ -106,6 +106,18 @@ description_key = "settings.enable-work-music.description"
 default         = false
 
 [[setting]]
+key             = "work-music-mode"
+type            = "select"
+label_key       = "settings.work-music-mode.label"
+description_key = "settings.work-music-mode.description"
+visible_when    = { key = "enable-work-music", values = ["true"] }
+default         = "single"
+options         = [
+    { value = "single", label_key = "settings.music-mode.options.single" },
+    { value = "shuffle", label_key = "settings.music-mode.options.shuffle" },
+]
+
+[[setting]]
 key             = "work-music-path"
 type            = "file"
 label_key       = "settings.work-music-path.label"
@@ -119,6 +131,18 @@ type            = "bool"
 label_key       = "settings.enable-break-music.label"
 description_key = "settings.enable-break-music.description"
 default         = false
+
+[[setting]]
+key             = "break-music-mode"
+type            = "select"
+label_key       = "settings.break-music-mode.label"
+description_key = "settings.break-music-mode.description"
+visible_when    = { key = "enable-break-music", values = ["true"] }
+default         = "single"
+options         = [
+    { value = "single", label_key = "settings.music-mode.options.single" },
+    { value = "shuffle", label_key = "settings.music-mode.options.shuffle" },
+]
 
 [[setting]]
 key             = "break-music-path"

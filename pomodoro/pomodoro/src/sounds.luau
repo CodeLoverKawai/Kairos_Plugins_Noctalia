@@ -246,17 +246,19 @@ function M.playAlarm()
     M.playWorkAlarm(nil)
 end
 
-local currentMusicPath: string? = nil
+local currentMusicKey: string? = nil
 
-function M.startMusic(path: string?)
+function M.startMusic(path: string?, mode: string?)
     if not path or path == "" then
         M.stopMusic()
         return
     end
-    if currentMusicPath == path then
+    local effectiveMode = if mode == "shuffle" then "shuffle" else "single"
+    local musicKey = effectiveMode .. "|" .. path
+    if currentMusicKey == musicKey then
         return
     end
-    currentMusicPath = path
+    currentMusicKey = musicKey
     local safePath = path:gsub('"', '\\"')
     if noctalia and noctalia.runAsync then
         local cmd = string.format([[sh -c '
@@ -267,24 +269,46 @@ function M.startMusic(path: string?)
                 pkill -9 -P "$OLD_PID" 2>/dev/null || true
             fi
             echo $$ > /tmp/noctalia_pomodoro_music.pid
-            while true; do
+
+            play_track() {
                 if command -v pw-play >/dev/null 2>&1; then
-                    pw-play "$1" 2>/dev/null || break
+                    pw-play "$1" 2>/dev/null
                 elif command -v paplay >/dev/null 2>&1; then
-                    paplay "$1" 2>/dev/null || break
+                    paplay "$1" 2>/dev/null
                 elif command -v ffplay >/dev/null 2>&1; then
-                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null || break
+                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
                 else
-                    break
+                    return 1
                 fi
-            done
-        ' noctalia_pomodoro_music "%s" &]], safePath)
+            }
+
+            MODE="$2"
+            TARGET="$1"
+            if [ "$MODE" = "shuffle" ] || [ -d "$TARGET" ]; then
+                if [ -d "$TARGET" ]; then
+                    DIR="$TARGET"
+                else
+                    DIR=$(dirname "$TARGET")
+                fi
+                while true; do
+                    find "$DIR" -maxdepth 2 -type f \( -iname "*.mp3" -o -iname "*.flac" -o -iname "*.ogg" -o -iname "*.opus" -o -iname "*.wav" -o -iname "*.m4a" -o -iname "*.aac" \) 2>/dev/null | shuf > /tmp/noctalia_pomodoro_playlist.txt
+                    [ ! -s /tmp/noctalia_pomodoro_playlist.txt ] && break
+                    while IFS= read -r TRACK; do
+                        [ -n "$TRACK" ] && play_track "$TRACK"
+                    done < /tmp/noctalia_pomodoro_playlist.txt
+                done
+            else
+                while true; do
+                    play_track "$TARGET" || break
+                done
+            fi
+        ' noctalia_pomodoro_music "%s" "%s" &]], safePath, effectiveMode)
         noctalia.runAsync(cmd)
     end
 end
 
 function M.stopMusic()
-    currentMusicPath = nil
+    currentMusicKey = nil
     if noctalia and noctalia.runAsync then
         noctalia.runAsync([[sh -c '
             if [ -f /tmp/noctalia_pomodoro_music.pid ]; then
