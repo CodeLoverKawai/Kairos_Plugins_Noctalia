@@ -310,15 +310,30 @@ function M.startMusic(path: string?, mode: string?)
             echo $$ > /tmp/noctalia_pomodoro_music.pid
 
             play_track() {
-                if command -v pw-play >/dev/null 2>&1; then
-                    pw-play "$1" 2>/dev/null
-                elif command -v paplay >/dev/null 2>&1; then
-                    paplay "$1" 2>/dev/null
-                elif command -v ffplay >/dev/null 2>&1; then
-                    ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
-                else
-                    return 1
-                fi
+                case "$1" in
+                    *.m4a|*.M4A|*.aac|*.AAC|*.mp4|*.MP4)
+                        if command -v mpv >/dev/null 2>&1; then
+                            mpv --no-video --really-quiet "$1" 2>/dev/null
+                        elif command -v ffplay >/dev/null 2>&1; then
+                            ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
+                        else
+                            return 1
+                        fi
+                        ;;
+                    *)
+                        if command -v pw-play >/dev/null 2>&1; then
+                            pw-play "$1" 2>/dev/null
+                        elif command -v mpv >/dev/null 2>&1; then
+                            mpv --no-video --really-quiet "$1" 2>/dev/null
+                        elif command -v paplay >/dev/null 2>&1; then
+                            paplay "$1" 2>/dev/null
+                        elif command -v ffplay >/dev/null 2>&1; then
+                            ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
+                        else
+                            return 1
+                        fi
+                        ;;
+                esac
             }
 
             MODE="$2"
