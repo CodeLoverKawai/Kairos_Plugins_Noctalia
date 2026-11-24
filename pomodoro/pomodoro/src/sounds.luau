@@ -248,6 +248,39 @@ function M.playAlarm()
 end
 
 local currentMusicKey: string? = nil
+local isMusicPaused = false
+
+function M.pauseMusic()
+    if not currentMusicKey or isMusicPaused then
+        return
+    end
+    isMusicPaused = true
+    if noctalia and noctalia.runAsync then
+        noctalia.runAsync([[sh -c '
+            if [ -f /tmp/noctalia_pomodoro_music.pid ]; then
+                PID=$(cat /tmp/noctalia_pomodoro_music.pid)
+                kill -STOP "$PID" 2>/dev/null || true
+                pkill -STOP -P "$PID" 2>/dev/null || true
+            fi
+        ']])
+    end
+end
+
+function M.resumeMusic()
+    if not currentMusicKey or not isMusicPaused then
+        return
+    end
+    isMusicPaused = false
+    if noctalia and noctalia.runAsync then
+        noctalia.runAsync([[sh -c '
+            if [ -f /tmp/noctalia_pomodoro_music.pid ]; then
+                PID=$(cat /tmp/noctalia_pomodoro_music.pid)
+                pkill -CONT -P "$PID" 2>/dev/null || true
+                kill -CONT "$PID" 2>/dev/null || true
+            fi
+        ']])
+    end
+end
 
 function M.startMusic(path: string?, mode: string?)
     if not path or path == "" then
@@ -257,9 +290,13 @@ function M.startMusic(path: string?, mode: string?)
     local effectiveMode = if mode == "shuffle" then "shuffle" else "single"
     local musicKey = effectiveMode .. "|" .. path
     if currentMusicKey == musicKey then
+        if isMusicPaused then
+            M.resumeMusic()
+        end
         return
     end
     currentMusicKey = musicKey
+    isMusicPaused = false
     local safePath = path:gsub('"', '\\"')
     if noctalia and noctalia.runAsync then
         local cmd = string.format([[sh -c '
@@ -311,6 +348,7 @@ end
 
 function M.stopMusic()
     currentMusicKey = nil
+    isMusicPaused = false
     if noctalia and noctalia.runAsync then
         noctalia.runAsync([[sh -c '
             if [ -f /tmp/noctalia_pomodoro_music.pid ]; then

@@ -106,17 +106,29 @@ local secondsLeft = 0
 local tickAnchorSecond = nil
 local lastProcessedSecond = nil
 
-local function syncMusic()
-    if isRunning and not isCompleted and not isMusicMuted then
-        if sessionPtr.stage == 1 and config.enableWorkMusic and config.workMusicPath ~= "" then
-            sounds.startMusic(config.workMusicPath, config.workMusicMode)
-            return
-        elseif sessionPtr.stage == 2 and config.enableBreakMusic and config.breakMusicPath ~= "" then
-            sounds.startMusic(config.breakMusicPath, config.breakMusicMode)
-            return
-        end
+local function syncMusic(forceStop: boolean?)
+    if forceStop or isCompleted then
+        sounds.stopMusic()
+        return
     end
-    sounds.stopMusic()
+
+    local stageHasMusic = (sessionPtr.stage == 1 and config.enableWorkMusic and config.workMusicPath ~= "")
+        or (sessionPtr.stage == 2 and config.enableBreakMusic and config.breakMusicPath ~= "")
+
+    if not stageHasMusic then
+        sounds.stopMusic()
+        return
+    end
+
+    if isRunning and not isMusicMuted then
+        if sessionPtr.stage == 1 then
+            sounds.startMusic(config.workMusicPath, config.workMusicMode)
+        else
+            sounds.startMusic(config.breakMusicPath, config.breakMusicMode)
+        end
+    else
+        sounds.pauseMusic()
+    end
 end
 
 local function resetTickClock()
@@ -262,6 +274,7 @@ else
 end
 
 local function handleStageFinished()
+    sounds.stopMusic()
     if sessionPtr.stage == 1 then
         -- Work finished -> transition to break
         if config.useBundledAlarmSound then
@@ -332,6 +345,7 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
         isRunning = false
         resetTickClock()
         sounds.stop()
+        sounds.stopMusic()
         if not isCompleted then
             if sessionPtr.stage == 1 then
                 sessionPtr.stage = 2
@@ -354,6 +368,7 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
         isRunning = false
         resetTickClock()
         sounds.stop()
+        sounds.stopMusic()
         if isCompleted then
             isCompleted = false
         end
@@ -362,6 +377,7 @@ noctalia.state.watch("pomodoro.nextCommand", function(command)
         isRunning = false
         resetTickClock()
         sounds.stop()
+        sounds.stopMusic()
         isCompleted = false
         sessionPtr = { session = 1, stage = 1 }
         secondsLeft = getStageTotalSeconds()
