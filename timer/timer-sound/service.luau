@@ -143,7 +143,11 @@ local function playAlarmSound()
   if dir == "" then
     dir = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/timer/timer-sound"
   end
+  local fallbackAlarm = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/timer/timer-sound/alarm.mp3"
   local bundledAlarm = `{dir}/alarm.mp3`
+  if noctalia.fileExists and not noctalia.fileExists(bundledAlarm) and noctalia.fileExists(fallbackAlarm) then
+    bundledAlarm = fallbackAlarm
+  end
 
   local customPath = noctalia.state.get("timer.custom_sound_path")
   if not customPath or customPath == "" then
@@ -199,48 +203,52 @@ local function playAlarmSound()
         wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.45 2>/dev/null || true
     ]] else ""
 
-    local playOne = [[
-      case "$1" in
-        *.m4a|*.M4A|*.aac|*.AAC|*.mp4|*.MP4)
-          if command -v mpv >/dev/null 2>&1; then
-            mpv --no-video --really-quiet "$1" 2>/dev/null
-          elif command -v ffplay >/dev/null 2>&1; then
-            ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
-          else
-            false
-          fi
-          ;;
-        *)
-          if command -v pw-play >/dev/null 2>&1; then
-            pw-play "$1" 2>/dev/null
-          elif command -v mpv >/dev/null 2>&1; then
-            mpv --no-video --really-quiet "$1" 2>/dev/null
-          elif command -v paplay >/dev/null 2>&1; then
-            paplay "$1" 2>/dev/null
-          elif command -v ffplay >/dev/null 2>&1; then
-            ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
-          else
-            false
-          fi
-          ;;
-      esac
+    local playFunc = [[
+      play_one() {
+        case "$1" in
+          *.m4a|*.M4A|*.aac|*.AAC|*.mp4|*.MP4)
+            if command -v mpv >/dev/null 2>&1; then
+              mpv --no-video --really-quiet "$1" 2>/dev/null
+            elif command -v ffplay >/dev/null 2>&1; then
+              ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
+            else
+              return 1
+            fi
+            ;;
+          *)
+            if command -v pw-play >/dev/null 2>&1; then
+              pw-play "$1" 2>/dev/null
+            elif command -v mpv >/dev/null 2>&1; then
+              mpv --no-video --really-quiet "$1" 2>/dev/null
+            elif command -v paplay >/dev/null 2>&1; then
+              paplay "$1" 2>/dev/null
+            elif command -v ffplay >/dev/null 2>&1; then
+              ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
+            else
+              return 1
+            fi
+            ;;
+        esac
+      }
     ]]
 
     if repeatAlarm then
       local loopCmd = string.format([[sh -c '
         %s
         %s
+        %s
         while true; do
-          %s || break
+          play_one "$1" || break
         done
-      ' noctalia_alarm_loop "%s" &]], killPrev, volHeader, playOne, safePath)
+      ' noctalia_alarm_loop "%s" &]], killPrev, volHeader, playFunc, safePath)
       noctalia.runAsync(loopCmd)
     else
       local singleCmd = string.format([[sh -c '
         %s
         %s
-        %s || true
-      ' noctalia_alarm_single "%s" &]], killPrev, volHeader, playOne, safePath)
+        %s
+        play_one "$1" || true
+      ' noctalia_alarm_single "%s" &]], killPrev, volHeader, playFunc, safePath)
       noctalia.runAsync(singleCmd)
     end
   elseif noctalia.sound and noctalia.sound.play then
