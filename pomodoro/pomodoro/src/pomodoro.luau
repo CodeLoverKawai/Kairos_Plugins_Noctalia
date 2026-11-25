@@ -274,7 +274,6 @@ else
 end
 
 local function handleStageFinished()
-    sounds.stopMusic()
     if sessionPtr.stage == 1 then
         -- Work finished -> transition to break
         if config.useBundledAlarmSound then
@@ -316,7 +315,7 @@ local function handleStageFinished()
             resetTickClock()
         end
     end
-    syncMusic()
+    syncMusic(not isRunning)
     savePomodoroState()
 end
 

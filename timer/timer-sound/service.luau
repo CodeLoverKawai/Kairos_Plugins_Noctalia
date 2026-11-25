@@ -83,8 +83,6 @@ local function stopSound()
         kill -9 "$PID" 2>/dev/null || true
       fi
       pkill -9 -f "[n]octalia_alarm_" 2>/dev/null || true
-      pkill -9 -f "[f]fplay -nodisp" 2>/dev/null || true
-      pkill -9 -x pw-play 2>/dev/null || true
       if [ -f /tmp/noctalia_timer_orig_vol ]; then
         ORIG_VOL=$(cat /tmp/noctalia_timer_orig_vol)
         wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ORIG_VOL" 2>/dev/null || true
@@ -136,26 +134,27 @@ local function playAlarmSound()
     return
   end
 
+  local dir = ""
+  if type(noctalia.pluginDir) == "function" then
+    dir = noctalia.pluginDir() or ""
+  elseif type(noctalia.pluginDir) == "string" then
+    dir = noctalia.pluginDir
+  end
+  if dir == "" then
+    dir = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/timer/timer-sound"
+  end
+  local bundledAlarm = `{dir}/alarm.mp3`
+
   local customPath = noctalia.state.get("timer.custom_sound_path")
   if not customPath or customPath == "" then
     customPath = noctalia.getConfig("custom_sound_path")
   end
-  local audioTarget = ""
 
+  local audioTarget = bundledAlarm
   if customPath and customPath ~= "" then
-    audioTarget = customPath
-  else
-    local dir = ""
-    if type(noctalia.pluginDir) == "function" then
-      dir = noctalia.pluginDir() or ""
-    elseif type(noctalia.pluginDir) == "string" then
-      dir = noctalia.pluginDir
+    if not (noctalia.fileExists) or noctalia.fileExists(customPath) then
+      audioTarget = customPath
     end
-
-    if dir == "" then
-      dir = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/timer/timer-sound"
-    end
-    audioTarget = `{dir}/alarm.mp3`
   end
 
   local repeatAlarm = noctalia.getConfig("repeat_alarm")
@@ -201,15 +200,30 @@ local function playAlarmSound()
     ]] else ""
 
     local playOne = [[
-      if command -v pw-play >/dev/null 2>&1; then
-        pw-play "$1" 2>/dev/null
-      elif command -v paplay >/dev/null 2>&1; then
-        paplay "$1" 2>/dev/null
-      elif command -v ffplay >/dev/null 2>&1; then
-        ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
-      else
-        false
-      fi
+      case "$1" in
+        *.m4a|*.M4A|*.aac|*.AAC|*.mp4|*.MP4)
+          if command -v mpv >/dev/null 2>&1; then
+            mpv --no-video --really-quiet "$1" 2>/dev/null
+          elif command -v ffplay >/dev/null 2>&1; then
+            ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
+          else
+            false
+          fi
+          ;;
+        *)
+          if command -v pw-play >/dev/null 2>&1; then
+            pw-play "$1" 2>/dev/null
+          elif command -v mpv >/dev/null 2>&1; then
+            mpv --no-video --really-quiet "$1" 2>/dev/null
+          elif command -v paplay >/dev/null 2>&1; then
+            paplay "$1" 2>/dev/null
+          elif command -v ffplay >/dev/null 2>&1; then
+            ffplay -nodisp -autoexit -loglevel quiet "$1" 2>/dev/null
+          else
+            false
+          fi
+          ;;
+      esac
     ]]
 
     if repeatAlarm then
