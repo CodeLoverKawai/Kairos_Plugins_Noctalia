@@ -37,12 +37,62 @@ local function loadConfig()
         longBreakDurationSeconds = getNumConfig("long-break-duration-seconds", 120, 30),
         autoOpenPanel = getBoolConfig("auto-open-panel", true),
         autoClosePanel = getBoolConfig("auto-close-panel", true),
+        enableScreenBlur = getBoolConfig("enable-screen-blur", true),
         enableSound = getBoolConfig("enable-sound", true),
         enableNotifications = getBoolConfig("enable-notifications", true),
     }
 end
 
 local config = loadConfig()
+
+local function getPluginDir(): string
+    local dir = ""
+    if noctalia then
+        if type(noctalia.pluginDir) == "function" then
+            dir = noctalia.pluginDir() or ""
+        elseif type(noctalia.pluginDir) == "string" then
+            dir = noctalia.pluginDir
+        end
+    end
+    if dir == "" then
+        dir = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/clarity/clarity"
+    end
+    return dir
+end
+
+local function showBlur()
+    if not config.enableScreenBlur or not (noctalia and noctalia.runAsync) then
+        return
+    end
+    local scriptPath = getPluginDir() .. "/src/clarity_blur.py"
+    if noctalia.fileExists and not noctalia.fileExists(scriptPath) then
+        scriptPath = homeDir .. "/Documents/GitHub/Kairos_Plugins_Noctalia/clarity/clarity/src/clarity_blur.py"
+    end
+    local safePath = scriptPath:gsub('"', '\\"')
+    local cmd = string.format([[sh -c '
+        if [ -f /tmp/noctalia_clarity_blur.pid ]; then
+            OLD_PID=$(cat /tmp/noctalia_clarity_blur.pid)
+            rm -f /tmp/noctalia_clarity_blur.pid
+            kill "$OLD_PID" 2>/dev/null || true
+        fi
+        echo $$ > /tmp/noctalia_clarity_blur.pid
+        exec python3 "$1" 2>/dev/null
+    ' clarity_blur_overlay "%s" &]], safePath)
+    noctalia.runAsync(cmd)
+end
+
+local function hideBlur()
+    if noctalia and noctalia.runAsync then
+        noctalia.runAsync([[sh -c '
+            if [ -f /tmp/noctalia_clarity_blur.pid ]; then
+                PID=$(cat /tmp/noctalia_clarity_blur.pid)
+                rm -f /tmp/noctalia_clarity_blur.pid
+                kill "$PID" 2>/dev/null || true
+            fi
+            pkill -f "[c]larity_blur.py" 2>/dev/null || true
+        ']])
+    end
+end
 
 local function getTodayKey(): string
     if os and os.date then
@@ -199,6 +249,7 @@ local function startBreak(forceLong: boolean?)
     end
 
     broadcast()
+    showBlur()
     openPanel()
 end
 
@@ -235,6 +286,7 @@ local function finishBreak(counted: boolean)
         end
     end
 
+    hideBlur()
     broadcast()
     closePanel()
 end
@@ -246,6 +298,7 @@ local function snoozeBreak(seconds: number)
     activeSeconds = 0
     snoozeRemaining = seconds
     isPaused = false
+    hideBlur()
     broadcast()
     closePanel()
 end
@@ -285,6 +338,7 @@ noctalia.state.watch("clarity.cmd", function(cmd)
         activeSeconds = 0
         snoozeRemaining = 0
         isPaused = false
+        hideBlur()
         broadcast()
     else
         local snoozeSecs = tonumber(cmd:match("^snooze:(%d+)$"))

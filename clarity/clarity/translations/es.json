@@ -89,6 +89,10 @@
       "label": "Cerrar panel automáticamente al terminar",
       "description": "Cierra el panel flotante cuando termina la cuenta regresiva del descanso"
     },
+    "enable-screen-blur": {
+      "label": "Difuminar pantalla completa (estilo SafeEyes)",
+      "description": "Aplica un fondo borroso translúcido detrás del panel de Clarity durante el descanso"
+    },
     "enable-sound": {
       "label": "Tonos suaves de aviso",
       "description": "Reproduce un sonido suave al iniciar y terminar cada descanso"

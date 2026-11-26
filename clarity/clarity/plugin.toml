@@ -60,6 +60,13 @@ description_key = "settings.auto-close-panel.description"
 default         = true
 
 [[setting]]
+key             = "enable-screen-blur"
+type            = "bool"
+label_key       = "settings.enable-screen-blur.label"
+description_key = "settings.enable-screen-blur.description"
+default         = true
+
+[[setting]]
 key             = "enable-sound"
 type            = "bool"
 label_key       = "settings.enable-sound.label"

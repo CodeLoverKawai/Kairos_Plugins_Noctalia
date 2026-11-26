@@ -89,6 +89,10 @@
       "label": "Auto-Close Panel When Done",
       "description": "Automatically close the floating panel once the break completes"
     },
+    "enable-screen-blur": {
+      "label": "Fullscreen Screen Blur (SafeEyes Style)",
+      "description": "Apply a frosted-glass blur overlay behind the Clarity panel during eye breaks"
+    },
     "enable-sound": {
       "label": "Gentle Sound Cues",
       "description": "Play a soft chime when a break begins and ends"
