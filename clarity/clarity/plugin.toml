@@ -1,0 +1,91 @@
+id           = "codeloverkawai/clarity"
+name         = "Clarity Eye-Care"
+version      = "1.0.0"
+plugin_api   = 22
+author       = "CodeLoverKawai"
+license      = "MIT"
+icon         = "eye"
+description  = "Clarity-style guided eye relaxation breaks with auto-opening floating panel, rotating visual exercises, snooze, and daily stats."
+tags         = ["bar", "panel", "service", "health", "productivity"]
+dependencies = []
+
+[[setting]]
+key             = "active-duration-minutes"
+type            = "int"
+label_key       = "settings.active-duration-minutes.label"
+description_key = "settings.active-duration-minutes.description"
+default         = 20
+min             = 1
+max             = 180
+
+[[setting]]
+key             = "break-duration-seconds"
+type            = "int"
+label_key       = "settings.break-duration-seconds.label"
+description_key = "settings.break-duration-seconds.description"
+default         = 20
+min             = 10
+max             = 300
+
+[[setting]]
+key             = "long-break-interval"
+type            = "int"
+label_key       = "settings.long-break-interval.label"
+description_key = "settings.long-break-interval.description"
+default         = 4
+min             = 0
+max             = 12
+
+[[setting]]
+key             = "long-break-duration-seconds"
+type            = "int"
+label_key       = "settings.long-break-duration-seconds.label"
+description_key = "settings.long-break-duration-seconds.description"
+default         = 120
+min             = 30
+max             = 600
+
+[[setting]]
+key             = "auto-open-panel"
+type            = "bool"
+label_key       = "settings.auto-open-panel.label"
+description_key = "settings.auto-open-panel.description"
+default         = true
+
+[[setting]]
+key             = "auto-close-panel"
+type            = "bool"
+label_key       = "settings.auto-close-panel.label"
+description_key = "settings.auto-close-panel.description"
+default         = true
+
+[[setting]]
+key             = "enable-sound"
+type            = "bool"
+label_key       = "settings.enable-sound.label"
+description_key = "settings.enable-sound.description"
+default         = true
+
+[[setting]]
+key             = "enable-notifications"
+type            = "bool"
+label_key       = "settings.enable-notifications.label"
+description_key = "settings.enable-notifications.description"
+default         = true
+
+[[widget]]
+id    = "widget"
+entry = "src/widget.luau"
+
+[[panel]]
+id              = "panel"
+entry           = "src/panel.luau"
+placement       = "floating"
+position        = "center"
+open_near_click = false
+width           = 420
+height          = 360
+
+[[service]]
+id    = "clarity"
+entry = "src/service.luau"

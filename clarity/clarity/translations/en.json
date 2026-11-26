@@ -1,0 +1,101 @@
+{
+  "title": "Clarity Eye-Care",
+  "badge": {
+    "short-break": "Short Eye Break",
+    "long-break": "Long Recovery Break",
+    "active": "Active",
+    "paused": "Paused",
+    "idle": "Resting (Idle)"
+  },
+  "stats": {
+    "today": "today",
+    "next-break": "Next break in",
+    "cycle-progress": "Cycle"
+  },
+  "button": {
+    "snooze-2": "+2m",
+    "snooze-5": "+5m",
+    "next-exercise": "Other",
+    "skip": "Skip",
+    "take-break": "Rest Now",
+    "pause": "Pause",
+    "resume": "Resume",
+    "reset": "Reset"
+  },
+  "exercise": {
+    "rule20": {
+      "title": "20-20-20 Far Focus",
+      "desc": "Look at an object at least 6 meters (20 ft) away—through a window or across the room. Let your gaze soften and relax your eyelids."
+    },
+    "blink": {
+      "title": "Conscious Blinking",
+      "desc": "Blink slowly and completely 10 times. Keep your eyes gently closed for 1 full second on each blink to re-lubricate your corneas."
+    },
+    "near-far": {
+      "title": "Near ↔ Far Focus Shift",
+      "desc": "Hold your thumb 25 cm in front of you. Focus on it for 5 seconds, then shift focus to a distant object for 5 seconds. Repeat smoothly."
+    },
+    "palming": {
+      "title": "Warm Palming",
+      "desc": "Rub your palms together for 3 seconds until warm. Gently cup them over your closed eyes without pressing and breathe deeply in darkness."
+    },
+    "figure8": {
+      "title": "Gentle Figure-8",
+      "desc": "Imagine a large horizontal ∞ about 3 meters ahead. Slowly trace it with your eyes only, keeping your head still and relaxed."
+    },
+    "peripheral": {
+      "title": "Soft Directional Stretch",
+      "desc": "Look gently up, down, left, and right without straining. Pause 2 seconds at each side, then return to a soft distant gaze."
+    },
+    "long-posture": {
+      "title": "Deep Visual & Posture Reset",
+      "desc": "Stand up from your desk, step away from all screens, roll your shoulders, stretch your neck, and drink some water while looking into the distance."
+    }
+  },
+  "notification": {
+    "break-title": "Clarity: Time to rest your eyes",
+    "long-break-title": "Clarity: Long eye & posture break",
+    "break-finished-title": "Clarity: Break complete",
+    "break-finished-body": "Your eyes are refreshed. You can return to your screen."
+  },
+  "tooltip": {
+    "active": "Clarity Eye-Care • Next break in %s • %d today\nLeft-click: Panel | Right-click: Pause | Middle-click: Rest now",
+    "paused": "Clarity Eye-Care (Paused) • %d today\nLeft-click: Panel | Right-click: Resume",
+    "break": "Clarity Break: %s (%ds left)\nLeft-click: Open exercise panel",
+    "idle": "Clarity: System idle (%ds) — eyes resting naturally"
+  },
+  "settings": {
+    "active-duration-minutes": {
+      "label": "Focus Interval (minutes)",
+      "description": "Minutes of active screen time before triggering an eye break"
+    },
+    "break-duration-seconds": {
+      "label": "Short Break Duration (seconds)",
+      "description": "Duration of each guided short eye exercise in seconds"
+    },
+    "long-break-interval": {
+      "label": "Long Break Every N Breaks",
+      "description": "Trigger a deeper long break after this many short breaks (0 to disable)"
+    },
+    "long-break-duration-seconds": {
+      "label": "Long Break Duration (seconds)",
+      "description": "Duration of the deep eye & posture recovery break in seconds"
+    },
+    "auto-open-panel": {
+      "label": "Auto-Open Floating Panel",
+      "description": "Automatically open the centered Clarity exercise panel when a break starts"
+    },
+    "auto-close-panel": {
+      "label": "Auto-Close Panel When Done",
+      "description": "Automatically close the floating panel once the break completes"
+    },
+    "enable-sound": {
+      "label": "Gentle Sound Cues",
+      "description": "Play a soft chime when a break begins and ends"
+    },
+    "enable-notifications": {
+      "label": "Desktop Notifications",
+      "description": "Show a notification when breaks start and finish"
+    }
+  }
+}

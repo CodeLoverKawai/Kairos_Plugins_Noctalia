@@ -1,0 +1,12 @@
+[[plugin]]
+id = "codeloverkawai/clarity"
+name = "Clarity Eye-Care"
+version = "1.0.0"
+updated_at = 1795640000
+added_at = 1795640000
+author = "CodeLoverKawai"
+license = "MIT"
+icon = "eye"
+description = "Clarity-style guided eye relaxation breaks with auto-opening floating panel, rotating visual exercises, snooze, and daily stats."
+plugin_api = 22
+tags = ["bar", "panel", "service", "health", "productivity"]

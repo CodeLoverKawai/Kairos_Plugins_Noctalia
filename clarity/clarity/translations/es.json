@@ -1,0 +1,101 @@
+{
+  "title": "Clarity Eye-Care",
+  "badge": {
+    "short-break": "Descanso Visual Corto",
+    "long-break": "Descanso Profundo",
+    "active": "Activo",
+    "paused": "Pausado",
+    "idle": "En reposo (Idle)"
+  },
+  "stats": {
+    "today": "hoy",
+    "next-break": "Próximo descanso en",
+    "cycle-progress": "Ciclo"
+  },
+  "button": {
+    "snooze-2": "+2m",
+    "snooze-5": "+5m",
+    "next-exercise": "Otro",
+    "skip": "Saltar",
+    "take-break": "Descansar ahora",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "reset": "Reiniciar"
+  },
+  "exercise": {
+    "rule20": {
+      "title": "Regla 20-20-20 (Enfoque Lejano)",
+      "desc": "Mira un objeto a más de 6 metros (por una ventana o el fondo de la habitación). Relaja los párpados y deja que la vista descanse."
+    },
+    "blink": {
+      "title": "Parpadeo Consciente",
+      "desc": "Parpadea lento y completo 10 veces. Mantén los ojos suavemente cerrados 1 segundo en cada parpadeo para lubricar la córnea."
+    },
+    "near-far": {
+      "title": "Enfoque Cerca ↔ Lejos",
+      "desc": "Coloca tu pulgar a 25 cm. Enfócalo durante 5 segundos y luego enfoca un objeto lejano otros 5 segundos. Repite con suavidad."
+    },
+    "palming": {
+      "title": "Palming (Oscuridad Tibia)",
+      "desc": "Frota tus palmas 3 segundos hasta entibiarlas. Cubre tus ojos cerrados sin presionar y respira profundo en total oscuridad."
+    },
+    "figure8": {
+      "title": "Figura en 8 Suave",
+      "desc": "Imagina un ∞ horizontal grande a 3 metros. Recórrelo lentamente moviendo solo los ojos, manteniendo la cabeza quieta y relajada."
+    },
+    "peripheral": {
+      "title": "Estiramiento Visual Suave",
+      "desc": "Lleva la mirada suavemente arriba, abajo, izquierda y derecha sin forzar. Pausa 2 segundos en cada lado y vuelve al centro."
+    },
+    "long-posture": {
+      "title": "Pausa Profunda y Postura",
+      "desc": "Levántate de la silla, aléjate de toda pantalla, mueve los hombros, estira el cuello y toma agua mientras miras a lo lejos."
+    }
+  },
+  "notification": {
+    "break-title": "Clarity: Hora de relajar la vista",
+    "long-break-title": "Clarity: Descanso profundo de vista y postura",
+    "break-finished-title": "Clarity: Descanso completado",
+    "break-finished-body": "Tus ojos ya descansaron. Puedes volver a la pantalla."
+  },
+  "tooltip": {
+    "active": "Clarity Eye-Care • Próximo descanso en %s • %d hoy\nClic izq: Panel | Clic der: Pausar | Clic medio: Descansar ya",
+    "paused": "Clarity Eye-Care (Pausado) • %d hoy\nClic izq: Panel | Clic der: Reanudar",
+    "break": "Descanso Clarity: %s (%ds restantes)\nClic izq: Abrir panel de ejercicio",
+    "idle": "Clarity: Sistema inactivo (%ds) — descansando la vista"
+  },
+  "settings": {
+    "active-duration-minutes": {
+      "label": "Intervalo de enfoque (minutos)",
+      "description": "Minutos de uso activo de pantalla antes de activar un descanso visual"
+    },
+    "break-duration-seconds": {
+      "label": "Duración del descanso corto (segundos)",
+      "description": "Duración de cada ejercicio visual corto guiado en segundos"
+    },
+    "long-break-interval": {
+      "label": "Descanso largo cada N descansos",
+      "description": "Activa una pausa profunda tras esta cantidad de descansos cortos (0 para desactivar)"
+    },
+    "long-break-duration-seconds": {
+      "label": "Duración del descanso largo (segundos)",
+      "description": "Duración de la pausa profunda de vista y postura en segundos"
+    },
+    "auto-open-panel": {
+      "label": "Abrir panel flotante automáticamente",
+      "description": "Abre el panel centrado de Clarity automáticamente al iniciar un descanso"
+    },
+    "auto-close-panel": {
+      "label": "Cerrar panel automáticamente al terminar",
+      "description": "Cierra el panel flotante cuando termina la cuenta regresiva del descanso"
+    },
+    "enable-sound": {
+      "label": "Tonos suaves de aviso",
+      "description": "Reproduce un sonido suave al iniciar y terminar cada descanso"
+    },
+    "enable-notifications": {
+      "label": "Notificaciones de escritorio",
+      "description": "Muestra una notificación al iniciar y finalizar el descanso"
+    }
+  }
+}
